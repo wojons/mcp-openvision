@@ -13,12 +13,14 @@ import pytest
 src_dir = Path(__file__).parent.parent / "src"
 sys.path.append(str(src_dir))
 
+
 # Mock the Image class to avoid schema generation issues
 class MockImage:
     def __init__(self, data=None, path=None, format=None):
         self.data = data or b""
         self.path = path
         self._format = format or "jpeg"
+
 
 # Create a patch for the fastmcp.Image import
 image_patch = patch("fastmcp.Image", MockImage)

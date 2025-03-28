@@ -122,10 +122,10 @@ async def analyze_image(
     # Validate parameter constraints manually
     if max_tokens < 100 or max_tokens > 4000:
         raise ValueError("max_tokens must be between 100 and 4000")
-    
+
     if temperature < 0.0 or temperature > 1.0:
         raise ValueError("temperature must be between 0.0 and 1.0")
-        
+
     # If no model specified, use the default model from environment or fallback
     if model is None:
         model = get_default_model()
@@ -270,7 +270,7 @@ async def compare_images(
     # Validate parameter constraints manually
     if max_tokens < 100 or max_tokens > 4000:
         raise ValueError("max_tokens must be between 100 and 4000")
-        
+
     # If no model specified, use the default model from environment or fallback
     if model is None:
         model = get_default_model()
