@@ -59,4 +59,7 @@ examples/test_image2.jpg
 
 # MCP cache
 .mcp/
-.claude/ 
+.claude/
+
+# Black temporary files
+.black 

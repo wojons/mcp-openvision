@@ -5,7 +5,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/mcp-openvision.svg)](https://pypi.org/project/mcp-openvision/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A simple MCP server for image analysis using OpenRouter. This MCP server allows clients (like Claude Desktop) to analyze images with state-of-the-art vision models.
+A simple MCP server for image analysis using OpenRouter. This MCP server allows clients (like Claude Desktop and Cursor) to analyze images with state-of-the-art vision models.
 
 ## Features
 
@@ -17,11 +17,15 @@ A simple MCP server for image analysis using OpenRouter. This MCP server allows 
 
 ## Installation
 
-### Option 1: Install from PyPI
+### Option 1: Install from PyPI (Recommended)
+
+The simplest way to install MCP OpenVision is directly from PyPI:
 
 ```bash
 pip install mcp-openvision
 ```
+
+This method allows you to use the server with `uvx` in your mcp.json configuration.
 
 ### Option 2: Install from source
 
@@ -34,29 +38,15 @@ cd mcp-openvision
 pip install -e .
 ```
 
-### Option 3: Install with FastMCP
+## Quick Setup
 
-```bash
-# Install directly for use with Claude
-fastmcp install src/mcp_openvision/server.py --name "OpenVision" -e OPENROUTER_API_KEY=your_api_key_here
-```
+### 1. Get an OpenRouter API Key
 
-## Requirements
+Sign up at [openrouter.ai](https://openrouter.ai) to get your API key.
 
-- Python 3.10 or higher
-- An OpenRouter API key (get one at [openrouter.ai](https://openrouter.ai))
-- Claude Desktop or another MCP client
+### 2. Configure in mcp.json
 
-## Configuration
-
-MCP OpenVision can be configured using environment variables:
-
-- **OPENROUTER_API_KEY** (required): Your OpenRouter API key
-- **OPENROUTER_DEFAULT_MODEL** (optional): The default vision model to use (defaults to "anthropic/claude-3-sonnet")
-
-### Adding to your mcp.json
-
-To use OpenVision with Claude Desktop or other MCP clients, add this to your `mcp.json` file:
+Add the following to your mcp.json file (typically located at `~/.cursor/mcp.json` or equivalent):
 
 ```json
 {
@@ -66,16 +56,26 @@ To use OpenVision with Claude Desktop or other MCP clients, add this to your `mc
       "args": ["mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
-        "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-sonnet"
+        "OPENROUTER_DEFAULT_MODEL": "qwen/qwq-32b:free"
       }
     }
   }
 }
 ```
 
-For more detailed configuration options, see [MCP_CONFIG.md](MCP_CONFIG.md).
+For detailed configuration options, see [MCP_CONFIG.md](MCP_CONFIG.md).
 
-## Example Prompts
+## Using MCP OpenVision
+
+Once installed and configured, you can use MCP OpenVision with any MCP client like Claude Desktop or Cursor.
+
+### Available Tools
+
+- **analyze_image**: General purpose image analysis with various modes
+- **extract_text_from_image**: Specialized tool for extracting text from images
+- **compare_images**: Tool for comparing two images and describing differences
+
+### Example Prompts
 
 - "Analyze this screenshot and tell me what's happening on the webpage"
 - "Extract all text from this image"
@@ -83,30 +83,21 @@ For more detailed configuration options, see [MCP_CONFIG.md](MCP_CONFIG.md).
 - "Is there a dog in this picture?"
 - "What kind of chart is this and what data is it showing?"
 
+## Environment Variables
+
+Configure MCP OpenVision using these environment variables in your mcp.json:
+
+- **OPENROUTER_API_KEY** (required): Your OpenRouter API key
+- **OPENROUTER_DEFAULT_MODEL** (optional): The default vision model to use
+
 ## Development
-
-### Running in Development Mode
-
-For development and testing, run the server in development mode:
-
-```bash
-fastmcp dev src/mcp_openvision/server.py -e OPENROUTER_API_KEY=your_api_key_here
-```
 
 ### Running Tests
 
 ```bash
-pip install pytest pytest-asyncio
+pip install -e ".[dev]"
 pytest tests/
 ```
-
-## Available Tools
-
-The MCP server provides these tools:
-
-- **analyze_image**: General purpose image analysis with various modes
-- **extract_text_from_image**: Specialized tool for extracting text from images
-- **compare_images**: Tool for comparing two images and describing differences
 
 ## License
 

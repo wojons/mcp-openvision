@@ -66,9 +66,14 @@ def test_get_openrouter_api_key():
 @pytest.mark.asyncio
 async def test_analyze_image(mock_image, mock_context, mock_response):
     """Test the analyze_image function."""
-    with patch("mcp_openvision.server.get_openrouter_api_key", return_value="test_key"), patch(
-        "mcp_openvision.server.encode_image_to_base64", return_value="base64_encoded"
-    ), patch("mcp_openvision.server.requests.post", return_value=mock_response):
+    with (
+        patch("mcp_openvision.server.get_openrouter_api_key", return_value="test_key"),
+        patch(
+            "mcp_openvision.server.encode_image_to_base64",
+            return_value="base64_encoded",
+        ),
+        patch("mcp_openvision.server.requests.post", return_value=mock_response),
+    ):
         result = await analyze_image(
             image=mock_image,
             prompt="Test prompt",
@@ -76,7 +81,7 @@ async def test_analyze_image(mock_image, mock_context, mock_response):
             mode=AnalysisMode.GENERAL,
             ctx=mock_context,
         )
-        
+
         assert result == "Test analysis result"
         mock_context.info.assert_called()
 
@@ -84,14 +89,16 @@ async def test_analyze_image(mock_image, mock_context, mock_response):
 @pytest.mark.asyncio
 async def test_extract_text_from_image(mock_image, mock_context):
     """Test the extract_text_from_image function."""
-    with patch("mcp_openvision.server.analyze_image", AsyncMock(return_value="Extracted text")):
+    with patch(
+        "mcp_openvision.server.analyze_image", AsyncMock(return_value="Extracted text")
+    ):
         result = await extract_text_from_image(
             image=mock_image,
             language="English",
             model=VisionModel.CLAUDE_3_SONNET,
             ctx=mock_context,
         )
-        
+
         assert result == "Extracted text"
         mock_context.info.assert_called()
 
@@ -99,9 +106,14 @@ async def test_extract_text_from_image(mock_image, mock_context):
 @pytest.mark.asyncio
 async def test_compare_images(mock_image, mock_context, mock_response):
     """Test the compare_images function."""
-    with patch("mcp_openvision.server.get_openrouter_api_key", return_value="test_key"), patch(
-        "mcp_openvision.server.encode_image_to_base64", return_value="base64_encoded"
-    ), patch("mcp_openvision.server.requests.post", return_value=mock_response):
+    with (
+        patch("mcp_openvision.server.get_openrouter_api_key", return_value="test_key"),
+        patch(
+            "mcp_openvision.server.encode_image_to_base64",
+            return_value="base64_encoded",
+        ),
+        patch("mcp_openvision.server.requests.post", return_value=mock_response),
+    ):
         result = await compare_images(
             image1=mock_image,
             image2=mock_image,
@@ -109,6 +121,6 @@ async def test_compare_images(mock_image, mock_context, mock_response):
             model=VisionModel.CLAUDE_3_SONNET,
             ctx=mock_context,
         )
-        
+
         assert result == "Test analysis result"
-        mock_context.info.assert_called() 
+        mock_context.info.assert_called()

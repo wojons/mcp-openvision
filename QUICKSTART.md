@@ -6,135 +6,87 @@ This guide will help you get started with the MCP OpenVision server quickly.
 
 - Python 3.10 or higher
 - An OpenRouter API key (get one at [openrouter.ai](https://openrouter.ai))
-- Claude Desktop or another MCP client
+- Claude Desktop, Cursor, or another MCP client
 
 ## Installation
 
-### Option 1: Install directly from source
+### Installing from PyPI (Recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/mcp-openvision.git
-cd mcp-openvision
-
-# Install the package
-pip install -e .
-```
-
-### Option 2: Install using FastMCP
-
-```bash
-# Install directly for use with Claude
-fastmcp install src/mcp_openvision/server.py --name "OpenVision" -e OPENROUTER_API_KEY=your_api_key_here
-```
-
-### Option 3: Install as a published package (if available)
-
-```bash
-# Install with pip/uv
+# Install the package globally
 pip install mcp-openvision
-
-# Or install with npm (if published to npm)
-npm install -g @mcpservers/openvision
 ```
 
-## Setting Up Your API Key
+This is the simplest method as it allows you to use the `uvx` command in your mcp.json configuration.
 
-The MCP server requires an OpenRouter API key to function. You can set it up in one of these ways:
+## Configuration
 
-1. **Environment variable**:
+### Configuring in mcp.json
 
-   ```bash
-   export OPENROUTER_API_KEY="your_api_key_here"
-   ```
+The primary way to configure MCP servers is through the mcp.json file, which is used by most MCP clients.
 
-2. **When installing with FastMCP**:
+1. **Locate your mcp.json file**:
 
-   ```bash
-   fastmcp install src/mcp_openvision/server.py -e OPENROUTER_API_KEY=your_api_key_here
-   ```
+   - Cursor: `~/.cursor/mcp.json` (Linux/macOS) or `%USERPROFILE%\.cursor\mcp.json` (Windows)
+   - Claude Desktop: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
 
-3. **In your mcp.json configuration**:
-   ```json
-   "openvision": {
-     "command": "uvx",
-     "args": ["mcp-openvision"],
-     "env": {
-       "OPENROUTER_API_KEY": "your_api_key_here",
-       "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-sonnet"
-     }
-   }
-   ```
+2. **Add the OpenVision configuration**:
 
-## Setting the Default Model
+```json
+{
+  "mcpServers": {
+    "openvision": {
+      "command": "uvx",
+      "args": ["mcp-openvision"],
+      "env": {
+        "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
+        "OPENROUTER_DEFAULT_MODEL": "qwen/qwq-32b:free"
+      }
+    }
+  }
+}
+```
 
-You can specify which vision model to use by default:
+Replace `your_openrouter_api_key_here` with your actual OpenRouter API key.
 
-1. **Environment variable**:
+3. **Save the file** and restart your MCP client.
 
-   ```bash
-   export OPENROUTER_DEFAULT_MODEL="anthropic/claude-3-opus"
-   ```
+### Environment Variables
 
-2. **In your mcp.json configuration**:
-   ```json
-   "env": {
-     "OPENROUTER_API_KEY": "your_api_key_here",
-     "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-opus"
-   }
-   ```
+MCP OpenVision can be configured using these environment variables in your mcp.json:
+
+- **OPENROUTER_API_KEY** (required): Your OpenRouter API key
+- **OPENROUTER_DEFAULT_MODEL** (optional): The default vision model to use
 
 Available models include:
 
+- "qwen/qwq-32b:free" (default)
 - "anthropic/claude-3-5-sonnet"
 - "anthropic/claude-3-opus"
-- "anthropic/claude-3-sonnet" (default)
+- "anthropic/claude-3-sonnet"
 - "openai/gpt-4o"
 
-## Manual Configuration in mcp.json
+## Using MCP OpenVision
 
-For more detailed instructions on configuring the server in your mcp.json file, see [MCP_CONFIG.md](MCP_CONFIG.md).
+Once configured, you can use MCP OpenVision with prompts like:
 
-## Using with Claude Desktop
-
-Once installed with `fastmcp install` or configured in your mcp.json, the OpenVision server will be available in Claude Desktop. Simply:
-
-1. Open Claude Desktop
-2. Click on the "Tools" menu
-3. Select "OpenVision" from the list of available MCP servers
-4. Use Claude to analyze images
-
-## Example Prompts
-
-Here are some example prompts you can use with Claude:
-
-- "Analyze this screenshot of a website and tell me what it's about"
-- "Extract all the text from this image"
+- "Analyze this screenshot and tell me what's happening on the webpage"
+- "Extract all text from this image"
 - "Compare these two images and tell me the differences"
 - "Is there a chart in this image? If so, analyze it and extract the data"
-- "What objects can you see in this photo?"
-- "Describe this technical diagram in detail"
-
-## Running in Development Mode
-
-For development and testing, you can run the server in development mode:
-
-```bash
-fastmcp dev src/mcp_openvision/server.py -e OPENROUTER_API_KEY=your_api_key_here
-```
-
-This will launch the MCP Inspector, which allows you to:
-
-- Test your tools interactively
-- View detailed logs
-- Debug any issues
 
 ## Available Tools
 
-The OpenVision MCP server provides the following tools:
+MCP OpenVision provides three main tools:
 
-- **analyze_image**: General purpose image analysis with various modes
-- **extract_text_from_image**: Specialized tool for extracting text from images
-- **compare_images**: Tool for comparing two images and describing differences
+- **analyze_image**: Analyzes images using different models and modes
+- **extract_text_from_image**: Specialized for extracting text from images
+- **compare_images**: Compares two images and describes differences
 
-Each tool has parameters you can adjust for your specific needs.
+## Troubleshooting
+
+- **Server not found**: Make sure the package is installed globally
+- **API key errors**: Verify your OpenRouter API key is correct
+- **Server not loading**: Check that your mcp.json syntax is valid
+
+For more detailed configuration options, see [MCP_CONFIG.md](MCP_CONFIG.md).

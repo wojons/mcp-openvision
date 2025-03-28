@@ -1,1 +1,1 @@
-"""Tests for the MCP OpenVision server.""" 
+"""Tests for the MCP OpenVision server."""
