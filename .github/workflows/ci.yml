@@ -36,9 +36,8 @@ jobs:
         run: |
           git diff --exit-code
 
-      # Temporarily skip tests due to compatibility issues with Pydantic and fastmcp
-      # - name: Run tests
-      #   run: |
-      #     pytest tests/
-      #   env:
-      #     OPENROUTER_API_KEY: ${{ secrets.MOCK_OPENROUTER_API_KEY }}
+      - name: Run tests
+        run: |
+          pytest tests/
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.MOCK_OPENROUTER_API_KEY }}
