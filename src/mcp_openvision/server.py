@@ -13,8 +13,7 @@ from typing import Annotated, List, Literal, Optional, Union
 
 import requests
 from fastmcp import Context, FastMCP, Image
-from fastmcp.models.fields import Field
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Initialize FastMCP with dependencies
 mcp = FastMCP(
