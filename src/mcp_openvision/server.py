@@ -13,7 +13,6 @@ from typing import Annotated, List, Literal, Optional, Union
 
 import requests
 from fastmcp import Context, FastMCP, Image
-from pydantic import BaseModel, Field
 
 # Initialize FastMCP with dependencies
 mcp = FastMCP(
@@ -101,8 +100,8 @@ async def analyze_image(
     prompt: str = "Analyze this image in detail",
     model: VisionModel = None,  # Changed to None default, will use get_default_model() below
     mode: AnalysisMode = AnalysisMode.GENERAL,
-    max_tokens: Annotated[int, Field(ge=100, le=4000)] = 1000,
-    temperature: Annotated[float, Field(ge=0.0, le=1.0)] = 0.7,
+    max_tokens: int = 1000,  # Removed Field, using simple type annotation
+    temperature: float = 0.7,  # Removed Field, using simple type annotation
     ctx: Context = None,
 ) -> str:
     """
@@ -113,13 +112,20 @@ async def analyze_image(
         prompt: The analysis prompt to use
         model: The vision model to use (defaults to OPENROUTER_DEFAULT_MODEL env var or Claude 3 Sonnet)
         mode: Predefined analysis mode for specific use cases
-        max_tokens: Maximum number of tokens in the response
+        max_tokens: Maximum number of tokens in the response (100-4000)
         temperature: Temperature parameter for generation (0.0-1.0)
         ctx: MCP context
 
     Returns:
         The analysis result as text
     """
+    # Validate parameter constraints manually
+    if max_tokens < 100 or max_tokens > 4000:
+        raise ValueError("max_tokens must be between 100 and 4000")
+    
+    if temperature < 0.0 or temperature > 1.0:
+        raise ValueError("temperature must be between 0.0 and 1.0")
+        
     # If no model specified, use the default model from environment or fallback
     if model is None:
         model = get_default_model()
@@ -244,43 +250,48 @@ async def compare_images(
     image2: Image,
     comparison_aspect: Optional[str] = None,
     model: VisionModel = None,  # Changed to None default
-    max_tokens: Annotated[int, Field(ge=100, le=4000)] = 1500,
+    max_tokens: int = 1500,  # Removed Field, using simple type annotation
     ctx: Context = None,
 ) -> str:
     """
-    Compare two images and describe their similarities and differences.
+    Compare two images and analyze their differences or similarities.
 
     Args:
-        image1: First image to compare
-        image2: Second image to compare
-        comparison_aspect: Optional specific aspect to focus on in the comparison
+        image1: The first image to compare
+        image2: The second image to compare
+        comparison_aspect: Optional specific aspect to focus on (e.g., "colors", "objects", "composition")
         model: The vision model to use (defaults to OPENROUTER_DEFAULT_MODEL env var or Claude 3 Sonnet)
-        max_tokens: Maximum number of tokens in the response
+        max_tokens: Maximum number of tokens in the response (100-4000)
         ctx: MCP context
 
     Returns:
-        Analysis of the similarities and differences between the images
+        Comparison analysis text
     """
+    # Validate parameter constraints manually
+    if max_tokens < 100 or max_tokens > 4000:
+        raise ValueError("max_tokens must be between 100 and 4000")
+        
     # If no model specified, use the default model from environment or fallback
     if model is None:
         model = get_default_model()
 
+    # Build the prompt based on the comparison aspect
+    prompt = "Compare these two images and describe the differences and similarities"
+    if comparison_aspect:
+        prompt += f", focusing specifically on the {comparison_aspect} aspect"
+    prompt += "."
+
     # Get API key
     api_key = get_openrouter_api_key()
-
-    # Encode images to base64
-    base64_image1 = encode_image_to_base64(image1.data)
-    base64_image2 = encode_image_to_base64(image2.data)
-
-    # Build prompt
-    prompt = "Compare these two images and describe their similarities and differences."
-    if comparison_aspect:
-        prompt += f" Focus specifically on the {comparison_aspect} aspect."
 
     if ctx:
         ctx.info(f"Comparing images with model: {model.value}")
         if comparison_aspect:
-            ctx.info(f"Focusing on: {comparison_aspect}")
+            ctx.info(f"Focusing on aspect: {comparison_aspect}")
+
+    # Encode images to base64
+    base64_image1 = encode_image_to_base64(image1.data)
+    base64_image2 = encode_image_to_base64(image2.data)
 
     # Prepare OpenRouter request
     headers = {
@@ -307,7 +318,7 @@ async def compare_images(
             }
         ],
         "max_tokens": max_tokens,
-        "temperature": 0.7,
+        "temperature": 0.7,  # Using a moderate temperature for comparison
     }
 
     if ctx:
@@ -329,12 +340,12 @@ async def compare_images(
 
     # Parse the response
     result = response.json()
-    analysis = result["choices"][0]["message"]["content"]
+    comparison = result["choices"][0]["message"]["content"]
 
     if ctx:
         ctx.info("Comparison completed successfully")
 
-    return analysis
+    return comparison
 
 
 @mcp.prompt()

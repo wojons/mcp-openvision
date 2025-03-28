@@ -13,6 +13,17 @@ import pytest
 src_dir = Path(__file__).parent.parent / "src"
 sys.path.append(str(src_dir))
 
+# Mock the Image class to avoid schema generation issues
+class MockImage:
+    def __init__(self, data=None, path=None, format=None):
+        self.data = data or b""
+        self.path = path
+        self._format = format or "jpeg"
+
+# Create a patch for the fastmcp.Image import
+image_patch = patch("fastmcp.Image", MockImage)
+
+# Import the server module
 from mcp_openvision.server import (
     AnalysisMode,
     VisionModel,
@@ -24,11 +35,17 @@ from mcp_openvision.server import (
 
 
 # Fixtures
+@pytest.fixture(autouse=True)
+def apply_image_patch():
+    """Apply the Image patch for all tests."""
+    with image_patch:
+        yield
+
+
 @pytest.fixture
 def mock_image():
     """Create a mock Image object."""
-    mock = MagicMock()
-    mock.data = b"fake_image_data"
+    mock = MockImage(data=b"fake_image_data")
     return mock
 
 
