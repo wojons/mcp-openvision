@@ -7,7 +7,6 @@ and calling the functions directly without the fastmcp tool decorators.
 
 import asyncio
 import importlib.util
-import inspect
 import os
 import sys
 from pathlib import Path
@@ -17,6 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 src_dir = Path(__file__).parent / "src"
 sys.path.append(str(src_dir))
 
+
 # Mock Image class
 class MockImage:
     def __init__(self, data=None, path=None, format=None):
@@ -24,37 +24,45 @@ class MockImage:
         self.path = path
         self._format = format or "jpeg"
 
+
 # Load the server.py file without executing the decorators
-spec = importlib.util.spec_from_file_location(
-    "server_source", Path(__file__).parent / "src" / "mcp_openvision" / "server.py"
-)
+mod_path = Path(__file__).parent / "src" / "mcp_openvision" / "server.py"
+spec = importlib.util.spec_from_file_location("server_source", mod_path)
 server_source = importlib.util.module_from_spec(spec)
 
 # Keep reference to original decorator
 original_decorator = None
 
+
 # Mock the decorator to avoid schema generation
 def mock_tool_decorator():
     def decorator(fn):
         return fn
+
     return decorator
+
 
 # Mock the FastMCP class
 class MockFastMCP:
     def __init__(self, *args, **kwargs):
         pass
-    
+
     def tool(self):
         return mock_tool_decorator()
-    
+
     def prompt(self):
         return mock_tool_decorator()
-    
+
     def run(self):
         pass
 
+
 # Patch key imports before loading the module
-with patch("fastmcp.FastMCP", MockFastMCP), patch("fastmcp.Image", MockImage), patch("fastmcp.Context", MagicMock):
+with (
+    patch("fastmcp.FastMCP", MockFastMCP),
+    patch("fastmcp.Image", MockImage),
+    patch("fastmcp.Context", MagicMock),
+):
     spec.loader.exec_module(server_source)
 
 # Now extract the functions we need
@@ -87,7 +95,7 @@ async def test_analyze_image():
     ):
         # Mock encode_image_to_base64 directly in the server_source module
         server_source.encode_image_to_base64 = lambda data: "base64_encoded"
-        
+
         result = await analyze_image(
             image=mock_image,
             prompt="Test prompt",
@@ -106,7 +114,7 @@ async def test_extract_text_from_image():
     # Temporarily replace analyze_image with a simple mock in the module
     original_analyze = server_source.analyze_image
     server_source.analyze_image = AsyncMock(return_value="Extracted text")
-    
+
     try:
         result = await extract_text_from_image(
             image=mock_image,
@@ -134,7 +142,7 @@ async def test_compare_images():
     ):
         # Mock encode_image_to_base64 directly in the server_source module
         server_source.encode_image_to_base64 = lambda data: "base64_encoded"
-        
+
         result = await compare_images(
             image1=mock_image,
             image2=mock_image,
@@ -158,4 +166,4 @@ async def run_tests():
 
 
 if __name__ == "__main__":
-    asyncio.run(run_tests()) 
+    asyncio.run(run_tests())
