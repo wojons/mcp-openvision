@@ -5,48 +5,57 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/mcp-openvision.svg)](https://pypi.org/project/mcp-openvision/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A simple MCP server for image analysis using OpenRouter. This MCP server allows clients (like Claude Desktop and Cursor) to analyze images with state-of-the-art vision models.
+## Overview
 
-## Features
-
-- **Analyze images** from local or remote sources using Claude, GPT-4o, or other models
-- **Extract text** from images with language hints
-- **Compare images** and identify differences
-- **Multiple analysis modes** (general, detailed, text extraction, technical, social media)
-- **Configurable** through environment variables
+MCP OpenVision is a Model Context Protocol (MCP) server that provides image analysis capabilities powered by OpenRouter vision models. It enables AI assistants to analyze images via a simple interface within the MCP ecosystem.
 
 ## Installation
 
-### Option 1: Install from PyPI (Recommended)
-
-The simplest way to install MCP OpenVision is directly from PyPI:
+### Using pip
 
 ```bash
 pip install mcp-openvision
 ```
 
-This method allows you to use the server with `uvx` in your mcp.json configuration.
-
-### Option 2: Install from source
+### Using UV (recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/Nazruden/mcp-openvision.git
-cd mcp-openvision
-
-# Install the package
-pip install -e .
+uv pip install mcp-openvision
 ```
 
-## Quick Setup
+## Configuration
 
-### 1. Get an OpenRouter API Key
+MCP OpenVision requires an OpenRouter API key and can be configured through environment variables:
 
-Sign up at [openrouter.ai](https://openrouter.ai) to get your API key.
+- **OPENROUTER_API_KEY** (required): Your OpenRouter API key
+- **OPENROUTER_DEFAULT_MODEL** (optional): The default vision model to use
 
-### 2. Configure in mcp.json
+### Supported Models
 
-Add the following to your mcp.json file (typically located at `~/.cursor/mcp.json` or equivalent):
+- `qwen/qwq-32b:free` (default)
+- `anthropic/claude-3-5-sonnet`
+- `anthropic/claude-3-opus`
+- `anthropic/claude-3-sonnet`
+- `openai/gpt-4o`
+
+## Usage
+
+### Testing with MCP Inspector
+
+The easiest way to test MCP OpenVision is with the MCP Inspector tool:
+
+```bash
+npx @modelcontextprotocol/inspector uvx mcp-openvision
+```
+
+### Integration with Claude Desktop or Cursor
+
+1. Edit your MCP configuration file:
+
+   - Windows: `%USERPROFILE%\.cursor\mcp.json`
+   - macOS: `~/.cursor/mcp.json` or `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+2. Add the following configuration:
 
 ```json
 {
@@ -56,49 +65,78 @@ Add the following to your mcp.json file (typically located at `~/.cursor/mcp.jso
       "args": ["mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
-        "OPENROUTER_DEFAULT_MODEL": "qwen/qwq-32b:free"
+        "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-sonnet"
       }
     }
   }
 }
 ```
 
-For detailed configuration options, see [MCP_CONFIG.md](MCP_CONFIG.md).
+### Running Locally for Development
 
-## Using MCP OpenVision
+```bash
+# Set the required API key
+export OPENROUTER_API_KEY="your_api_key"
 
-Once installed and configured, you can use MCP OpenVision with any MCP client like Claude Desktop or Cursor.
+# Run the server module directly
+python -m mcp_openvision
+```
 
-### Available Tools
+## Features
 
-- **analyze_image**: General purpose image analysis with various modes
-- **extract_text_from_image**: Specialized tool for extracting text from images
-- **compare_images**: Tool for comparing two images and describing differences
+MCP OpenVision provides the following core tool:
 
-### Example Prompts
+- **image_analysis**: Analyze images with vision models, supporting various parameters:
+  - `image`: Can be provided as:
+    - Base64-encoded image data
+    - Image URL (http/https)
+    - Local file path
+  - `prompt`: Analysis instruction
+  - `model`: Vision model to use
+  - `temperature`: Controls randomness (0.0-1.0)
+  - `max_tokens`: Maximum response length
 
-- "Analyze this screenshot and tell me what's happening on the webpage"
-- "Extract all text from this image"
-- "Describe this photo in detail"
-- "Is there a dog in this picture?"
-- "What kind of chart is this and what data is it showing?"
+### Example Usage
 
-## Environment Variables
+```python
+# Analyze an image from a URL
+result = await image_analysis(
+    image="https://example.com/image.jpg",
+    prompt="Describe this image in detail"
+)
 
-Configure MCP OpenVision using these environment variables in your mcp.json:
+# Analyze an image from a local file
+result = await image_analysis(
+    image="path/to/local/image.jpg",
+    prompt="What objects are in this image?"
+)
 
-- **OPENROUTER_API_KEY** (required): Your OpenRouter API key
-- **OPENROUTER_DEFAULT_MODEL** (optional): The default vision model to use
+# Analyze with a base64-encoded image
+result = await image_analysis(
+    image="SGVsbG8gV29ybGQ=...",  # base64 data
+    prompt="Analyze this image"
+)
+```
 
 ## Development
 
-### Running Tests
+### Setup Development Environment
 
 ```bash
+# Clone the repository
+git clone https://github.com/modelcontextprotocol/mcp-openvision.git
+cd mcp-openvision
+
+# Install development dependencies
 pip install -e ".[dev]"
-pytest tests/
+```
+
+### Run Tests
+
+```bash
+pytest
 ```
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

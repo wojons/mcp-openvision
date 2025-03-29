@@ -73,20 +73,36 @@ Once configured, you can use MCP OpenVision with prompts like:
 - "Analyze this screenshot and tell me what's happening on the webpage"
 - "Extract all text from this image"
 - "Compare these two images and tell me the differences"
+- "Detect objects in this image and give me their positions"
 - "Is there a chart in this image? If so, analyze it and extract the data"
 
 ## Available Tools
 
-MCP OpenVision provides three main tools:
+MCP OpenVision provides these main tools:
 
 - **analyze_image**: Analyzes images using different models and modes
 - **extract_text_from_image**: Specialized for extracting text from images
 - **compare_images**: Compares two images and describes differences
+- **detect_objects**: Identifies objects in an image with confidence scores
+
+## Image Analysis Prompts
+
+The server also provides a prompt template system for common image analysis tasks:
+
+- General analysis
+- Detailed descriptions
+- Object detection
+- Text extraction
+- Technical analysis
+- Image comparison
+
+You can use these prompts through the MCP client interface, typically by selecting the prompt type and providing additional instructions if needed.
 
 ## Troubleshooting
 
 - **Server not found**: Make sure the package is installed globally
 - **API key errors**: Verify your OpenRouter API key is correct
 - **Server not loading**: Check that your mcp.json syntax is valid
+- **Compatibility issues**: Make sure you have the latest version of the MCP SDK
 
 For more detailed configuration options, see [MCP_CONFIG.md](MCP_CONFIG.md).

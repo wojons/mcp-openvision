@@ -132,10 +132,15 @@ You can add multiple MCP servers to your configuration:
 }
 ```
 
+## SDK Version
+
+MCP OpenVision uses the official [Model Context Protocol SDK](https://github.com/modelcontextprotocol/python-sdk) version 1.6.0 or higher. This ensures full compatibility with the latest MCP features and improvements.
+
 ## Troubleshooting
 
 1. **Server Not Found**: Ensure the package is installed globally if using `uvx`
 2. **Permission Issues**: Check that your OpenRouter API key is correct
 3. **Path Issues**: For filesystem access, make sure paths are absolute and correct for your OS
+4. **SDK Compatibility**: If you encounter issues, verify you have the latest version of the MCP SDK
 
 If you encounter issues with a specific configuration, try running the command manually in a terminal to see any error messages.

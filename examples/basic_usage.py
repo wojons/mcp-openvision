@@ -1,77 +1,91 @@
 """
-Example showing basic usage of the MCP OpenVision server.
+Basic example of using the OpenVision MCP server.
 
-This script demonstrates how to use the MCP OpenVision server from Python.
+This example shows how to:
+1. Connect to the server
+2. List available tools
+3. Call the image_analysis tool with a simple prompt
 """
 
+import asyncio
 import os
-import sys
 from pathlib import Path
 
-# Add the src directory to sys.path to import the package
-src_dir = Path(__file__).parent.parent / "src"
-sys.path.append(str(src_dir))
-
-from mcp_openvision.server import (
-    analyze_image,
-    compare_images,
-    extract_text_from_image,
-    AnalysisMode,
-    VisionModel,
-)
-from fastmcp import Image
-
-# Set your OpenRouter API key
-os.environ["OPENROUTER_API_KEY"] = "your_api_key_here"  # Replace with your actual key
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
 
 async def main():
-    """Run example usage of the MCP server."""
-    print("MCP OpenVision Example")
-    print("======================")
+    # Set up the server parameters
+    server_params = StdioServerParameters(
+        command="python",
+        args=["-m", "mcp_openvision"],
+        env={
+            # You can set environment variables here
+            "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY"),
+            "OPENROUTER_DEFAULT_MODEL": "qwen/qwq-32b:free",  # Optional: set default model
+        }
+    )
     
-    # Example 1: Basic image analysis
-    image_path = "./examples/test_image.jpg"  # Replace with your test image
+    print("Connecting to OpenVision MCP server...")
     
-    print("\nExample 1: Basic Image Analysis")
-    print("---------------------------------")
-    try:
-        result = await analyze_image(
-            image=Image(path=image_path),
-            prompt="What's in this image?",
-            model=VisionModel.CLAUDE_3_SONNET,
-        )
-        print(result)
-    except Exception as e:
-        print(f"Error: {e}")
-    
-    # Example 2: Text extraction
-    print("\nExample 2: Text Extraction")
-    print("---------------------------")
-    try:
-        result = await extract_text_from_image(
-            image=Image(path=image_path),
-            language="English",  # Optional
-        )
-        print(result)
-    except Exception as e:
-        print(f"Error: {e}")
-    
-    # Example 3: Image comparison
-    print("\nExample 3: Image Comparison")
-    print("----------------------------")
-    try:
-        image_path2 = "./examples/test_image2.jpg"  # Replace with your second test image
-        result = await compare_images(
-            image1=Image(path=image_path),
-            image2=Image(path=image_path2),
-            comparison_aspect="colors and objects",
-        )
-        print(result)
-    except Exception as e:
-        print(f"Error: {e}")
+    # Connect to the server
+    async with stdio_client(server_params) as (read_stream, write_stream):
+        async with ClientSession(read_stream, write_stream) as session:
+            # Initialize the connection
+            await session.initialize()
+            
+            # List available tools
+            tools_response = await session.list_tools()
+            print(f"Available tools: {[tool.name for tool in tools_response.tools]}")
+            
+            # Read an image file
+            image_path = Path(__file__).parent / "sample_image.jpg"
+            
+            if not image_path.exists():
+                print(f"Error: Sample image not found at {image_path}")
+                print("Please add a sample image named 'sample_image.jpg' to the examples directory.")
+                return
+            
+            with open(image_path, "rb") as f:
+                image_data = f.read()
+            
+            print("\nAnalyzing image with basic prompt...")
+            
+            # Call the image_analysis tool with a simple prompt
+            result = await session.call_tool(
+                "image_analysis", 
+                {
+                    "image": {"data": image_data},
+                    "prompt": "What's in this image?"
+                }
+            )
+            
+            print(f"\nResult:\n{result.content}")
+            
+            # Example with custom messages
+            print("\nAnalyzing image with custom messages...")
+            
+            result = await session.call_tool(
+                "image_analysis", 
+                {
+                    "image": {"data": image_data},
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant focused on analyzing images."},
+                        {
+                            "role": "user", 
+                            "content": [
+                                {"type": "text", "text": "Identify all colors present in this image"},
+                                {"type": "image_url", "image_url": {"url": "WILL_BE_REPLACED_WITH_IMAGE"}}
+                            ]
+                        }
+                    ]
+                }
+            )
+            
+            print(f"\nResult with custom messages:\n{result.content}")
 
 
 if __name__ == "__main__":
-    import asyncio
+    # Run the async main function
     asyncio.run(main()) 
