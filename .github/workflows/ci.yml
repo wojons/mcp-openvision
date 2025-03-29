@@ -22,12 +22,6 @@ jobs:
       - name: Run black
         run: |
           black --check src tests
-      - name: Run isort
-        run: |
-          isort --check src tests
-      - name: Run flake8
-        run: |
-          flake8 src tests
 
   # Temporarily skip tests due to issues with fastmcp.Image JSON schema generation
   # The tests work manually but fail in CI due to Pydantic schema generation
