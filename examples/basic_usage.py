@@ -55,7 +55,7 @@ async def main():
 
             print("\nAnalyzing image with basic prompt...")
 
-            # Call the image_analysis tool with a simple prompt
+            # Call the image_analysis tool with a simple query
             result = await session.call_tool(
                 "image_analysis",
                 {"image": {"data": image_data}, "query": "What's in this image?"},
@@ -63,36 +63,32 @@ async def main():
 
             print(f"\nResult:\n{result.content}")
 
-            # Example with custom messages
-            print("\nAnalyzing image with custom messages...")
+            # Example with a detailed contextual query
+            print("\nAnalyzing image with a detailed contextual query...")
 
             result = await session.call_tool(
                 "image_analysis",
                 {
                     "image": {"data": image_data},
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "You are a helpful assistant focused on analyzing images.",
-                        },
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": "Identify all colors present in this image",
-                                },
-                                {
-                                    "type": "image_url",
-                                    "image_url": {"url": "WILL_BE_REPLACED_WITH_IMAGE"},
-                                },
-                            ],
-                        },
-                    ],
+                    "query": "Analyze this photograph for use in a travel blog. Identify notable landmarks, architectural styles, and cultural elements that would interest tourists. Suggest what time of day it was taken and how lighting affects the mood of the image. This will help readers understand what to expect when visiting this location."
                 },
             )
 
-            print(f"\nResult with custom messages:\n{result.content}")
+            print(f"\nResult with detailed contextual query:\n{result.content}")
+
+            # Example with custom system prompt
+            print("\nAnalyzing image with custom system prompt...")
+
+            result = await session.call_tool(
+                "image_analysis",
+                {
+                    "image": {"data": image_data},
+                    "query": "Identify all colors present in this image and explain how they work together in the composition",
+                    "system_prompt": "You are a color analysis expert with deep knowledge of color theory and visual design. Focus on identifying precise color values, their relationships, emotional impacts, and practical applications in design contexts. Analyze colors using terminology from professional color systems (RGB, CMYK, HSL, etc.) when relevant."
+                },
+            )
+
+            print(f"\nResult with custom system prompt:\n{result.content}")
 
             # Example with relative path and project_root
             print("\nAnalyzing image using a relative path with project_root...")

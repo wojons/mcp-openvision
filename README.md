@@ -97,6 +97,26 @@ MCP OpenVision provides the following core tool:
   - `temperature`: Controls randomness (0.0-1.0)
   - `max_tokens`: Maximum response length
 
+### Crafting Effective Queries
+
+The `query` parameter is crucial for getting useful results from the image analysis. A well-crafted query provides context about:
+
+1. **Purpose**: Why you're analyzing this image
+2. **Focus areas**: Specific elements or details to pay attention to
+3. **Required information**: The type of information you need to extract
+4. **Format preferences**: How you want the results structured
+
+#### Examples of Effective Queries
+
+| Basic Query             | Enhanced Query                                                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| "Describe this image"   | "Identify all retail products visible in this store shelf image and estimate their price range"                      |
+| "What's in this image?" | "Analyze this medical scan for abnormalities, focusing on the highlighted area and providing possible diagnoses"     |
+| "Analyze this chart"    | "Extract the numerical data from this bar chart showing quarterly sales, and identify the key trends from 2022-2023" |
+| "Read the text"         | "Transcribe all visible text in this restaurant menu, preserving the item names, descriptions, and prices"           |
+
+By providing context about why you need the analysis and what specific information you're seeking, you help the model focus on relevant details and produce more valuable insights.
+
 ### Example Usage
 
 ```python
@@ -106,23 +126,23 @@ result = await image_analysis(
     query="Describe this image in detail"
 )
 
-# Analyze an image from a local file
+# Analyze an image from a local file with a focused query
 result = await image_analysis(
     image="path/to/local/image.jpg",
-    query="What objects are in this image?"
+    query="Identify all traffic signs in this street scene and explain their meanings for a driver education course"
 )
 
-# Analyze with a base64-encoded image
+# Analyze with a base64-encoded image and a specific analytical purpose
 result = await image_analysis(
     image="SGVsbG8gV29ybGQ=...",  # base64 data
-    query="Analyze this image"
+    query="Examine this product packaging design and highlight elements that could be improved for better visibility and brand recognition"
 )
 
-# Customize the system prompt
+# Customize the system prompt for specialized analysis
 result = await image_analysis(
     image="path/to/local/image.jpg",
-    query="What's in this image?",
-    system_prompt="You are an expert at identifying rare objects. Focus on unusual items and explain their significance."
+    query="Analyze the composition and artistic techniques used in this painting, focusing on how they create emotional impact",
+    system_prompt="You are an expert art historian with deep knowledge of painting techniques and art movements. Focus on formal analysis of composition, color, brushwork, and stylistic elements."
 )
 ```
 
@@ -166,6 +186,21 @@ cd mcp-openvision
 
 # Install development dependencies
 pip install -e ".[dev]"
+```
+
+### Code Formatting
+
+This project uses Black for automatic code formatting. The formatting is enforced through GitHub Actions:
+
+- All code pushed to the repository is automatically formatted with Black
+- For pull requests from repository collaborators, Black formats the code and commits directly to the PR branch
+- For pull requests from forks, Black creates a new PR with the formatted code that can be merged into the original PR
+
+You can also run Black locally to format your code before committing:
+
+```bash
+# Format all Python code in the src and tests directories
+black src tests
 ```
 
 ### Run Tests

@@ -111,9 +111,8 @@ def encode_image_to_base64(image_data: bytes) -> str:
 @mcp.tool()
 async def image_analysis(
     image: types.BinaryData,
-    query: Optional[str] = None,
+    query: str = "Describe this image in detail",
     system_prompt: str = "You are an expert vision analyzer with exceptional attention to detail. Your purpose is to provide accurate, comprehensive descriptions of images that help AI agents understand visual content they cannot directly perceive. Focus on describing all relevant elements in the image - objects, people, text, colors, spatial relationships, actions, and context. Be precise but concise, organizing information from most to least important. Avoid making assumptions beyond what's visible and clearly indicate any uncertainty. When text appears in images, transcribe it verbatim within quotes. Respond only with factual descriptions without subjective judgments or creative embellishments. Your descriptions should enable an agent to make informed decisions based solely on your analysis.",
-    messages: Optional[List[Dict]] = None,
     model: Optional[VisionModel] = None,
     max_tokens: int = 4000,
     temperature: float = 0.7,
@@ -124,14 +123,13 @@ async def image_analysis(
     Analyze an image using OpenRouter's vision capabilities.
 
     This tool allows you to send an image to OpenRouter's vision models for analysis.
-    You can either provide a simple prompt or customize the full messages array for
-    more control over the interaction.
+    You provide a query to guide the analysis and can optionally customize the system prompt
+    for more control over the model's behavior.
 
     Args:
         image: The image to analyze (binary data)
-        query: A simple text prompt for the analysis (ignored if messages is provided)
+        query: Text prompt to guide the image analysis (as user message)
         system_prompt: Instructions for the model defining its role and behavior
-        messages: Optional custom messages array for the OpenRouter chat completions API
         model: The vision model to use (defaults to the value set by OPENROUTER_DEFAULT_MODEL)
         max_tokens: Maximum number of tokens in the response (100-4000)
         temperature: Temperature parameter for generation (0.0-1.0)
@@ -142,21 +140,14 @@ async def image_analysis(
         The analysis result as text
 
     Examples:
-        Basic usage with just a prompt:
+        Basic usage with a query:
             image_analysis(image=my_image, query="Describe this image in detail")
 
-        Advanced usage with custom messages:
+        Usage with custom system prompt:
             image_analysis(
                 image=my_image,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": "What objects can you see in this image?"},
-                            {"type": "image_url", "image_url": {"url": "WILL_BE_REPLACED_WITH_IMAGE"}}
-                        ]
-                    }
-                ]
+                query="What objects can you see in this image?",
+                system_prompt="You are an expert at identifying objects in images. Focus on listing all visible objects."
             )
     """
     # Validate parameter constraints
@@ -173,118 +164,61 @@ async def image_analysis(
     if model is None:
         model = get_default_model()
 
-    # Get API key
-    try:
-        api_key = get_api_key()
-    except ConfigurationError as e:
-        if ctx:
-            ctx.log_error(str(e))
-        raise
-
-    if ctx:
-        ctx.log_info(f"Processing image with model: {model.value}")
-
     # Encode image to base64
-    base64_image = encode_image_to_base64(image.data)
+    image_base64 = encode_image_to_base64(image.data)
 
     # Prepare messages for the OpenRouter request
-    if messages is None:
-        # Create default messages from prompt
-        default_query = query or "Analyze this image in detail"
-        messages = [
-            {
-                "role": "system",
-                "content": system_prompt
-            },
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": default_query},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                    },
-                ],
-            }
-        ]
-    else:
-        # Messages were provided - ensure the image is included
-        # This is a simplified version - production code would need more robust handling
-        # Find the first user message
-        for message in messages:
-            if message.get("role") == "user":
-                # Check if this message already has image content
-                has_image = False
-                if "content" in message and isinstance(message["content"], list):
-                    for content_item in message["content"]:
-                        if content_item.get("type") == "image_url":
-                            # Replace any placeholder URLs with the actual image
-                            if content_item.get("image_url", {}).get("url") == "WILL_BE_REPLACED_WITH_IMAGE":
-                                content_item["image_url"]["url"] = f"data:image/jpeg;base64,{base64_image}"
-                            has_image = True
+    messages = [
+        {
+            "role": "system",
+            "content": system_prompt
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": query
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{image_base64}"
+                    }
+                }
+            ]
+        }
+    ]
 
-                # If no image found, add it to the first user message
-                if not has_image and "content" in message and isinstance(message["content"], list):
-                    message["content"].append({
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                    })
-                break
-
-    # Prepare OpenRouter request
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
-    payload = {
+    # Prepare API request data
+    api_data = {
         "model": model.value,
         "messages": messages,
         "max_tokens": max_tokens,
-        "temperature": temperature,
+        "temperature": temperature
     }
 
-    # Add optional parameters if provided
     if top_p is not None:
-        payload["top_p"] = top_p
+        api_data["top_p"] = top_p
 
-    if ctx:
-        ctx.log_info("Sending request to OpenRouter...")
+    # Make the API call to OpenRouter
+    # (In a real implementation, proper error handling would be added)
+    response = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/modelcontextprotocol/mcp-openvision",
+            "X-Title": "MCP OpenVision"
+        },
+        json=api_data
+    )
 
-    try:
-        # Make the API call
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            json=payload,
-        )
+    if response.status_code != 200:
+        raise ValueError(f"Error from OpenRouter: {response.status_code} - {response.text}")
 
-        # Check for errors
-        if response.status_code != 200:
-            error_msg = f"Error from OpenRouter: {response.status_code} - {response.text}"
-            if ctx:
-                ctx.log_error(error_msg)
-            raise OpenRouterError(response.status_code, response.text)
-
-        # Parse the response
-        result = response.json()
-        analysis = result["choices"][0]["message"]["content"]
-
-        if ctx:
-            ctx.log_info("Analysis completed successfully")
-
-        return analysis
-
-    except requests.RequestException as e:
-        error_msg = f"Network error when connecting to OpenRouter: {str(e)}"
-        if ctx:
-            ctx.log_error(error_msg)
-        raise OpenRouterError(0, error_msg)
-    except json.JSONDecodeError as e:
-        error_msg = f"Error parsing OpenRouter response: {str(e)}"
-        if ctx:
-            ctx.log_error(error_msg)
-        raise OpenRouterError(0, error_msg)
+    result = response.json()
+    return result["choices"][0]["message"]["content"]
 
 
 def main():
@@ -315,28 +249,36 @@ if __name__ == "__main__":
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 import asyncio
+from pathlib import Path
 
 async def main():
-    # Connect to the MCP server
+    """Example client code for using the MCP OpenVision server."""
+    # Set up the server parameters
     server_params = StdioServerParameters(
-        command="python",
-        args=["-m", "mcp_openvision"],
-        env={"OPENROUTER_API_KEY": "your_api_key_here"}
+        command="uvx",
+        args=["run", "mcp-openvision"],
+        env={
+            "OPENROUTER_API_KEY": "your_api_key_here",
+            "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-sonnet"
+        }
     )
 
+    # Connect to the server
     async with stdio_client(server_params) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as session:
             # Initialize the connection
             await session.initialize()
 
             # List available tools
-            tools = await session.list_tools()
-            print(f"Available tools: {[tool.name for tool in tools.tools]}")
+            tools_response = await session.list_tools()
+            print(f"Available tools: {[tool.name for tool in tools_response.tools]}")
 
-            # Call the image_analysis tool
-            with open("example.jpg", "rb") as f:
+            # Read an image file
+            image_path = Path("examples/sample_image.jpg")
+            with open(image_path, "rb") as f:
                 image_data = f.read()
 
+            # Call the image_analysis tool with a simple query
             result = await session.call_tool(
                 "image_analysis",
                 {

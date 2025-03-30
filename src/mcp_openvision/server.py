@@ -201,7 +201,6 @@ async def image_analysis(
     image: str,
     query: str = "Describe this image in detail",
     system_prompt: str = "You are an expert vision analyzer with exceptional attention to detail. Your purpose is to provide accurate, comprehensive descriptions of images that help AI agents understand visual content they cannot directly perceive. Focus on describing all relevant elements in the image - objects, people, text, colors, spatial relationships, actions, and context. Be precise but concise, organizing information from most to least important. Avoid making assumptions beyond what's visible and clearly indicate any uncertainty. When text appears in images, transcribe it verbatim within quotes. Respond only with factual descriptions without subjective judgments or creative embellishments. Your descriptions should enable an agent to make informed decisions based solely on your analysis.",
-    messages: Optional[List[Dict[str, Any]]] = None,
     model: Optional[str] = None,
     max_tokens: int = 4000,
     temperature: float = 0.7,
@@ -214,14 +213,16 @@ async def image_analysis(
     Analyze an image using OpenRouter's vision capabilities.
 
     This tool allows you to send an image to OpenRouter's vision models for analysis.
-    You can either provide a simple prompt or customize the full messages array for
-    more control over the interaction.
+    You provide a query to guide the analysis and can optionally customize the system prompt
+    for more control over the model's behavior.
 
     Args:
         image: The image as a base64-encoded string, URL, or local file path
-        query: Text prompt to guide the image analysis (as user message)
+        query: Text prompt to guide the image analysis. For best results, provide context
+               about why you're analyzing the image and what specific information you need.
+               Including details about your purpose and required focus areas leads to more
+               relevant and useful responses.
         system_prompt: Instructions for the model defining its role and behavior
-        messages: Optional custom messages array for the OpenRouter chat completions API
         model: The vision model to use (defaults to the value set by OPENROUTER_DEFAULT_MODEL)
         max_tokens: Maximum number of tokens in the response (100-4000)
         temperature: Temperature parameter for generation (0.0-1.0)
@@ -234,7 +235,7 @@ async def image_analysis(
         The analysis result as text
 
     Examples:
-        Basic usage with just a prompt and file path:
+        Basic usage with a file path:
             image_analysis(image="path/to/image.jpg", query="Describe this image in detail")
 
         Basic usage with an image URL:
@@ -243,18 +244,19 @@ async def image_analysis(
         Basic usage with a relative path and project root:
             image_analysis(image="examples/image.jpg", project_root="/path/to/project", query="Describe this image in detail")
 
-        Advanced usage with custom messages:
+        Usage with a detailed contextual query:
             image_analysis(
                 image="path/to/image.jpg",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": "What objects can you see in this image?"},
-                            {"type": "image_url", "image_url": {"url": "WILL_BE_REPLACED_WITH_IMAGE"}}
-                        ]
-                    }
-                ]
+                query="Analyze this product packaging design for a fitness supplement. Identify all nutritional claims, 
+                      certifications, and health icons. Assess the visual hierarchy and how the key selling points 
+                      are communicated. This is for a competitive analysis project."
+            )
+
+        Usage with custom system prompt:
+            image_analysis(
+                image="path/to/image.jpg",
+                query="What objects can you see in this image?",
+                system_prompt="You are an expert at identifying objects in images. Focus on listing all visible objects."
             )
     """
     # Validate parameter constraints
@@ -315,84 +317,19 @@ async def image_analysis(
     print(f"Processing image with model: {model_value}")
 
     # Prepare messages for the OpenRouter request
-    if messages is None:
-        # Create default messages with system and user role
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": query},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                    },
-                ],
-            },
-        ]
-    else:
-        # Messages were provided - ensure the image is included
-        image_added = False
-
-        # Check if system message exists, add if not
-        has_system_message = any(
-            message.get("role") == "system" for message in messages
-        )
-        if not has_system_message:
-            messages.insert(0, {"role": "system", "content": system_prompt})
-
-        # Process each message
-        for message in messages:
-            if message.get("role") == "user":
-                # Check if this message already has image content
-                has_image = False
-                if "content" in message and isinstance(message["content"], list):
-                    for content_item in message["content"]:
-                        if content_item.get("type") == "image_url":
-                            # Replace any placeholder URLs with the actual image
-                            if (
-                                content_item.get("image_url", {}).get("url")
-                                == "WILL_BE_REPLACED_WITH_IMAGE"
-                            ):
-                                content_item["image_url"][
-                                    "url"
-                                ] = f"data:image/jpeg;base64,{base64_image}"
-                            has_image = True
-                            image_added = True
-
-                # If no image found, add it to the first user message
-                if (
-                    not has_image
-                    and "content" in message
-                    and isinstance(message["content"], list)
-                ):
-                    message["content"].append(
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}"
-                            },
-                        }
-                    )
-                    image_added = True
-                    break
-
-        # If no user message with content list was found, add a new one with the image
-        if not image_added:
-            messages.append(
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": query},
                 {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": query},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}"
-                            },
-                        },
-                    ],
-                }
-            )
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+                },
+            ],
+        },
+    ]
 
     # Prepare OpenRouter request
     headers = {
