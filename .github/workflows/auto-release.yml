@@ -1,0 +1,64 @@
+name: Auto Create Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "pyproject.toml"
+
+jobs:
+  check-version-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2 # We need at least the current and previous commit
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Check for version change
+        id: check_version
+        run: |
+          git fetch
+          # Get the previous version
+          git show HEAD~1:pyproject.toml > previous_pyproject.toml
+          PREV_VERSION=$(grep -m 1 "version" previous_pyproject.toml | cut -d'"' -f2 || echo "0.0.0")
+
+          # Get the current version
+          CURRENT_VERSION=$(grep -m 1 "version" pyproject.toml | cut -d'"' -f2)
+
+          echo "Previous version: $PREV_VERSION"
+          echo "Current version: $CURRENT_VERSION"
+
+          # Compare versions
+          if [ "$PREV_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "Version changed from $PREV_VERSION to $CURRENT_VERSION"
+            echo "VERSION_CHANGED=true" >> $GITHUB_ENV
+            echo "NEW_VERSION=$CURRENT_VERSION" >> $GITHUB_ENV
+          else
+            echo "Version unchanged, skipping release creation"
+            echo "VERSION_CHANGED=false" >> $GITHUB_ENV
+          fi
+
+      - name: Create Release
+        if: env.VERSION_CHANGED == 'true'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.NEW_VERSION }}
+          release_name: Release v${{ env.NEW_VERSION }}
+          draft: false
+          prerelease: false
+          body: |
+            Release of version ${{ env.NEW_VERSION }}
+
+            This release was automatically created by the auto-release workflow.
+
+            See the [CHANGELOG.md](https://github.com/Nazruden/mcp-openvision/blob/main/CHANGELOG.md) for details.

@@ -174,6 +174,22 @@ pip install -e ".[dev]"
 pytest
 ```
 
+### Release Process
+
+This project uses an automated release process:
+
+1. Update the version in `pyproject.toml` following [Semantic Versioning](https://semver.org/) principles
+   - You can use the helper script: `python scripts/bump_version.py [major|minor|patch]`
+2. Update the `CHANGELOG.md` with details about the new version
+   - The script also creates a template entry in CHANGELOG.md that you can fill in
+3. Commit and push these changes to the `main` branch
+4. The GitHub Actions workflow will:
+   - Detect the version change
+   - Automatically create a new GitHub release
+   - Trigger the publishing workflow that publishes to PyPI
+
+This automation helps maintain a consistent release process and ensures that every release is properly versioned and documented.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
