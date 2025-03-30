@@ -247,8 +247,8 @@ async def image_analysis(
         Usage with a detailed contextual query:
             image_analysis(
                 image="path/to/image.jpg",
-                query="Analyze this product packaging design for a fitness supplement. Identify all nutritional claims, 
-                      certifications, and health icons. Assess the visual hierarchy and how the key selling points 
+                query="Analyze this product packaging design for a fitness supplement. Identify all nutritional claims,
+                      certifications, and health icons. Assess the visual hierarchy and how the key selling points
                       are communicated. This is for a competitive analysis project."
             )
 

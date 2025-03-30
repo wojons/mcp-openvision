@@ -42,7 +42,7 @@ def get_api_key() -> str:
 def get_default_model() -> Union[VisionModel, str]:
     """
     Get the default vision model from environment variables or use Qwen 2.5 VL as fallback.
-    
+
     This function allows using any OpenRouter model, even if not in the VisionModel enum.
 
     Returns:
@@ -54,7 +54,7 @@ def get_default_model() -> Union[VisionModel, str]:
         for model in VisionModel:
             if model.value == default_model:
                 return model
-        
+
         # If not found in enum but a valid string, return as custom model
         print(f"Using custom model from environment: {default_model}")
         return default_model
