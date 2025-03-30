@@ -17,6 +17,7 @@ class VisionModel(str, Enum):
     CLAUDE_3_SONNET = "anthropic/claude-3-sonnet"
     GPT_4O = "openai/gpt-4o"
     QWEN_QWQ_32B = "qwen/qwq-32b:free"
+    QWEN_2_5_VL = "qwen/qwen2.5-vl-32b-instruct:free"
 
 
 def get_api_key() -> str:
@@ -40,7 +41,7 @@ def get_api_key() -> str:
 
 def get_default_model() -> VisionModel:
     """
-    Get the default vision model from environment variables or use Qwen QWQ-32B as fallback.
+    Get the default vision model from environment variables or use Qwen 2.5 VL as fallback.
 
     Returns:
         The default VisionModel to use
@@ -55,8 +56,8 @@ def get_default_model() -> VisionModel:
         # If we didn't find a match, log a warning and use the fallback
         print(
             f"Warning: OPENROUTER_DEFAULT_MODEL '{default_model}' is not recognized. "
-            f"Using qwen/qwq-32b:free as default."
+            f"Using qwen/qwen2.5-vl-32b-instruct:free as default."
         )
 
-    # Return the fallback model (QWEN_QWQ_32B)
-    return VisionModel.QWEN_QWQ_32B
+    # Return the fallback model (QWEN_2_5_VL)
+    return VisionModel.QWEN_2_5_VL

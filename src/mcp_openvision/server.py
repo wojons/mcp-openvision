@@ -199,7 +199,7 @@ def process_image_input(image: str, project_root: Optional[str] = None) -> str:
 @mcp.tool()
 async def image_analysis(
     image: str,
-    prompt: Optional[str] = None,
+    prompt: str = "Describe this image in detail including all visible elements, text, and context",
     messages: Optional[List[Dict[str, Any]]] = None,
     model: Optional[str] = None,
     max_tokens: int = 4000,
@@ -217,10 +217,10 @@ async def image_analysis(
     more control over the interaction.
 
     Args:
-        image: The image as a base64-encoded string, URL, or local file path
-        prompt: A simple text prompt for the analysis (ignored if messages is provided)
+        image: The image as a base64-encoded string, URL, or local file path (required)
+        prompt: Text prompt to guide the image analysis (defaults to general description)
         messages: Optional custom messages array for the OpenRouter chat completions API
-        model: The vision model to use (defaults to the value set by OPENROUTER_DEFAULT_MODEL)
+        model: The vision model to use (defaults to qwen/qwen2.5-vl-32b-instruct:free)
         max_tokens: Maximum number of tokens in the response (100-4000)
         temperature: Temperature parameter for generation (0.0-1.0)
         top_p: Optional nucleus sampling parameter (0.0-1.0)
@@ -232,14 +232,17 @@ async def image_analysis(
         The analysis result as text
 
     Examples:
-        Basic usage with just a prompt and file path:
-            image_analysis(image="path/to/image.jpg", prompt="Describe this image in detail")
+        Basic usage with a file path:
+            image_analysis(image="path/to/image.jpg")
+
+        Basic usage with a custom prompt:
+            image_analysis(image="path/to/image.jpg", prompt="What objects can you see in this image?")
 
         Basic usage with an image URL:
             image_analysis(image="https://example.com/image.jpg", prompt="Describe this image in detail")
 
         Basic usage with a relative path and project root:
-            image_analysis(image="examples/image.jpg", project_root="/path/to/project", prompt="Describe this image in detail")
+            image_analysis(image="examples/image.jpg", project_root="/path/to/project")
 
         Advanced usage with custom messages:
             image_analysis(
@@ -279,7 +282,18 @@ async def image_analysis(
     try:
         base64_image = process_image_input(image, project_root)
     except Exception as e:
-        raise ValueError(f"Failed to process image: {str(e)}")
+        # Provide more helpful error message with examples
+        error_msg = f"Failed to process image: {str(e)}\n\n"
+        error_msg += "Make sure your image is specified correctly:\n"
+        error_msg += "- For file paths, try providing the full absolute path\n"
+        error_msg += "- For relative paths, specify the project_root parameter\n"
+        error_msg += "- For URLs, ensure they are publicly accessible\n"
+        error_msg += "- For base64, ensure the encoding is correct\n\n"
+        error_msg += "Examples:\n"
+        error_msg += "image_analysis(image=\"/full/path/to/image.jpg\")\n"
+        error_msg += "image_analysis(image=\"relative/path/image.jpg\", project_root=\"/root/dir\")\n"
+        error_msg += "image_analysis(image=\"https://example.com/image.jpg\")"
+        raise ValueError(error_msg)
 
     # If no model specified, use the default model from environment or fallback
     if model is None:
@@ -299,12 +313,11 @@ async def image_analysis(
     # Prepare messages for the OpenRouter request
     if messages is None:
         # Create default messages from prompt
-        default_prompt = prompt or "Analyze this image in detail"
         messages = [
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": default_prompt},
+                    {"type": "text", "text": prompt},
                     {
                         "type": "image_url",
                         "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
@@ -354,13 +367,11 @@ async def image_analysis(
 
         # If no user message with content list was found, add a new one with the image
         if not image_added:
-            # Use the prompt if provided, or a default
-            text_content = prompt or "Analyze this image"
             messages.append(
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": text_content},
+                        {"type": "text", "text": prompt},
                         {
                             "type": "image_url",
                             "image_url": {
