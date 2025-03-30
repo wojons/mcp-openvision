@@ -102,7 +102,7 @@ def test_load_image_from_path(sample_image_file):
     # Test with a non-existent file
     with pytest.raises(FileNotFoundError):
         load_image_from_path("/path/to/nonexistent/image.jpg")
-    
+
     # Create a test directory structure for project_root testing
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create a test file within a subdirectory
@@ -111,20 +111,24 @@ def test_load_image_from_path(sample_image_file):
         test_file = test_subdir / "test_image.jpg"
         with open(test_file, "wb") as f:
             f.write(b"test image content")
-        
+
         # Test with project_root and relative path
-        base64_result = load_image_from_path("subdir/test_image.jpg", project_root=temp_dir)
+        base64_result = load_image_from_path(
+            "subdir/test_image.jpg", project_root=temp_dir
+        )
         assert isinstance(base64_result, str)
-        
+
         # Test with project_root but invalid path
         with pytest.raises(FileNotFoundError) as excinfo:
             load_image_from_path("non_existent.jpg", project_root=temp_dir)
         assert "tried directly and under project root" in str(excinfo.value)
-        
+
         # Test with relative path but no project_root
         with pytest.raises(FileNotFoundError) as excinfo:
             load_image_from_path("some/relative/path.jpg")
-        assert "relative path used without specifying project_root" in str(excinfo.value)
+        assert "relative path used without specifying project_root" in str(
+            excinfo.value
+        )
 
 
 @patch("mcp_openvision.server.load_image_from_url")
@@ -151,10 +155,10 @@ def test_process_image_input(mock_load_path, mock_load_url):
     result = process_image_input(path_input)
     assert result == "base64_from_path"
     mock_load_path.assert_called_once_with(path_input, None)
-    
+
     # Reset mocks for next test
     mock_load_path.reset_mock()
-    
+
     # Test with path input and project_root
     path_input = "relative/path/to/image.jpg"
     project_root = "/app/root"
@@ -213,9 +217,9 @@ async def test_image_analysis_with_project_root(mock_post, mock_process, mock_ap
 
     # Call the function with a file path and project root
     result = await image_analysis(
-        image="examples/test_image.png", 
+        image="examples/test_image.png",
         project_root="/path/to/project",
-        prompt="Test prompt"
+        prompt="Test prompt",
     )
 
     # Verify the result

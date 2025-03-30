@@ -130,29 +130,29 @@ def load_image_from_path(path: str, project_root: Optional[str] = None) -> str:
     """
     # Create a Path object from the input path
     file_path = Path(path)
-    
+
     # If the path is absolute, use it directly
     if file_path.is_absolute():
         if not file_path.exists():
             raise FileNotFoundError(f"Image file not found at absolute path: {path}")
         with open(file_path, "rb") as f:
             return encode_image_to_base64(f.read())
-    
+
     # For relative paths, we need to handle differently
     paths_to_try = [file_path]  # Always try the direct path first
-    
+
     # If project_root is provided, try resolving against it
     if project_root:
         root_path = Path(project_root)
         if root_path.exists() and root_path.is_dir():
             paths_to_try.append(root_path / path)
-    
+
     # Try each path
     for p in paths_to_try:
         if p.exists():
             with open(p, "rb") as f:
                 return encode_image_to_base64(f.read())
-    
+
     # If we get here, the file wasn't found
     if project_root:
         raise FileNotFoundError(
@@ -237,7 +237,7 @@ async def image_analysis(
 
         Basic usage with an image URL:
             image_analysis(image="https://example.com/image.jpg", prompt="Describe this image in detail")
-            
+
         Basic usage with a relative path and project root:
             image_analysis(image="examples/image.jpg", project_root="/path/to/project", prompt="Describe this image in detail")
 
