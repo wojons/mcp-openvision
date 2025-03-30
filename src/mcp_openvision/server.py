@@ -114,12 +114,13 @@ def load_image_from_url(url: str) -> str:
     return encode_image_to_base64(response.content)
 
 
-def load_image_from_path(path: str) -> str:
+def load_image_from_path(path: str, project_root: Optional[str] = None) -> str:
     """
     Load an image from a local file path and convert it to base64.
 
     Args:
         path: The path to the image file
+        project_root: Optional root directory to resolve relative paths against
 
     Returns:
         The image data as a base64-encoded string
@@ -127,20 +128,49 @@ def load_image_from_path(path: str) -> str:
     Raises:
         FileNotFoundError: If the image file does not exist
     """
+    # Create a Path object from the input path
     file_path = Path(path)
-    if not file_path.exists():
-        raise FileNotFoundError(f"Image file not found: {path}")
+    
+    # If the path is absolute, use it directly
+    if file_path.is_absolute():
+        if not file_path.exists():
+            raise FileNotFoundError(f"Image file not found at absolute path: {path}")
+        with open(file_path, "rb") as f:
+            return encode_image_to_base64(f.read())
+    
+    # For relative paths, we need to handle differently
+    paths_to_try = [file_path]  # Always try the direct path first
+    
+    # If project_root is provided, try resolving against it
+    if project_root:
+        root_path = Path(project_root)
+        if root_path.exists() and root_path.is_dir():
+            paths_to_try.append(root_path / path)
+    
+    # Try each path
+    for p in paths_to_try:
+        if p.exists():
+            with open(p, "rb") as f:
+                return encode_image_to_base64(f.read())
+    
+    # If we get here, the file wasn't found
+    if project_root:
+        raise FileNotFoundError(
+            f"Image file not found: {path} (tried directly and under project root: {project_root})"
+        )
+    else:
+        raise FileNotFoundError(
+            f"Image file not found: {path} (relative path used without specifying project_root)"
+        )
 
-    with open(file_path, "rb") as f:
-        return encode_image_to_base64(f.read())
 
-
-def process_image_input(image: str) -> str:
+def process_image_input(image: str, project_root: Optional[str] = None) -> str:
     """
     Process the image input, which can be a URL, file path, or base64-encoded data.
 
     Args:
         image: The image input as a URL, file path, or base64-encoded data
+        project_root: Optional root directory to resolve relative paths against
 
     Returns:
         The image data as a base64-encoded string
@@ -158,10 +188,10 @@ def process_image_input(image: str) -> str:
 
     # Check if the image is a file path
     try:
-        return load_image_from_path(image)
-    except FileNotFoundError:
+        return load_image_from_path(image, project_root)
+    except FileNotFoundError as e:
         raise ValueError(
-            f"Invalid image input: {image}. "
+            f"Invalid image input: {str(e)}. "
             f"Image must be a base64-encoded string, a URL, or a valid file path."
         )
 
@@ -177,6 +207,7 @@ async def image_analysis(
     top_p: Optional[float] = None,
     presence_penalty: Optional[float] = None,
     frequency_penalty: Optional[float] = None,
+    project_root: Optional[str] = None,
 ) -> str:
     """
     Analyze an image using OpenRouter's vision capabilities.
@@ -195,6 +226,7 @@ async def image_analysis(
         top_p: Optional nucleus sampling parameter (0.0-1.0)
         presence_penalty: Optional penalty for new tokens based on presence in text so far (0.0-2.0)
         frequency_penalty: Optional penalty for new tokens based on frequency in text so far (0.0-2.0)
+        project_root: Optional root directory to resolve relative image paths against
 
     Returns:
         The analysis result as text
@@ -205,6 +237,9 @@ async def image_analysis(
 
         Basic usage with an image URL:
             image_analysis(image="https://example.com/image.jpg", prompt="Describe this image in detail")
+            
+        Basic usage with a relative path and project root:
+            image_analysis(image="examples/image.jpg", project_root="/path/to/project", prompt="Describe this image in detail")
 
         Advanced usage with custom messages:
             image_analysis(
@@ -242,7 +277,7 @@ async def image_analysis(
 
     # Process the image input (URL, file path, or base64)
     try:
-        base64_image = process_image_input(image)
+        base64_image = process_image_input(image, project_root)
     except Exception as e:
         raise ValueError(f"Failed to process image: {str(e)}")
 

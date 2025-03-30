@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Basic example of using the OpenVision MCP server.
 
@@ -84,6 +85,29 @@ async def main():
             )
             
             print(f"\nResult with custom messages:\n{result.content}")
+            
+            # Example with relative path and project_root
+            print("\nAnalyzing image using a relative path with project_root...")
+            
+            # Get the current working directory to use as a project_root example
+            project_root = os.getcwd()
+            
+            # Call the image_analysis tool with a relative path and project_root
+            try:
+                result = await session.call_tool(
+                    "image_analysis", 
+                    {
+                        "image": "examples/test_image.png",  # Relative path from project root
+                        "project_root": project_root,  # Set the project root directory
+                        "prompt": "What can you see in this image?"
+                    }
+                )
+                print(f"\nResult with relative path and project_root:\n{result.content}")
+            except Exception as e:
+                print(f"\nError using relative path: {str(e)}")
+                print("Make sure you have a file at 'examples/test_image.png' relative to the current directory.")
+                
+            print("\nDone!")
 
 
 if __name__ == "__main__":

@@ -118,6 +118,35 @@ result = await image_analysis(
 )
 ```
 
+## Image Input Types
+
+The `image_analysis` tool accepts several types of image inputs:
+
+1. **Base64-encoded strings**
+2. **Image URLs** - must start with http:// or https://
+3. **File paths**:
+   - **Absolute paths**: full paths starting with / (Unix) or drive letter (Windows)
+   - **Relative paths**: paths relative to the current working directory
+   - **Relative paths with project_root**: use the `project_root` parameter to specify a base directory
+
+### Using Relative Paths
+
+When using relative file paths (like "examples/image.jpg"), you have two options:
+
+1. The path must be relative to the current working directory where the server is running
+2. Or, you can specify a `project_root` parameter:
+
+```python
+# Example with relative path and project_root
+result = await image_analysis(
+    image="examples/image.jpg",
+    project_root="/path/to/your/project",
+    prompt="What is in this image?"
+)
+```
+
+This is particularly useful in applications where the current working directory may not be predictable or when you want to reference files using paths relative to a specific directory.
+
 ## Development
 
 ### Setup Development Environment
