@@ -24,7 +24,7 @@ async def main():
         env={
             # You can set environment variables here
             "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY"),
-            "OPENROUTER_DEFAULT_MODEL": "qwen/qwq-32b:free",  # Optional: set default model
+            "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free",  # Optional: set default model
         },
     )
 

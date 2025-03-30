@@ -4,6 +4,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/mcp-openvision.svg)](https://pypi.org/project/mcp-openvision/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/mcp-openvision.svg)](https://pypi.org/project/mcp-openvision/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow.svg)](https://buymeacoffee.com/nazruden)
 
 ## Overview
 
@@ -28,15 +29,21 @@ uv pip install mcp-openvision
 MCP OpenVision requires an OpenRouter API key and can be configured through environment variables:
 
 - **OPENROUTER_API_KEY** (required): Your OpenRouter API key
-- **OPENROUTER_DEFAULT_MODEL** (optional): The default vision model to use
+- **OPENROUTER_DEFAULT_MODEL** (optional): The vision model to use
 
-### Supported Models
+### OpenRouter Vision Models
 
-- `qwen/qwq-32b:free` (default)
+MCP OpenVision works with any OpenRouter model that supports vision capabilities. The default model is `qwen/qwen2.5-vl-32b-instruct:free`, but you can specify any other compatible model.
+
+Some popular vision models available through OpenRouter include:
+
+- `qwen/qwen2.5-vl-32b-instruct:free` (default)
 - `anthropic/claude-3-5-sonnet`
 - `anthropic/claude-3-opus`
 - `anthropic/claude-3-sonnet`
 - `openai/gpt-4o`
+
+You can specify custom models by setting the `OPENROUTER_DEFAULT_MODEL` environment variable or by passing the `model` parameter directly to the `image_analysis` function.
 
 ## Usage
 
@@ -224,6 +231,14 @@ This project uses an automated release process:
    - Trigger the publishing workflow that publishes to PyPI
 
 This automation helps maintain a consistent release process and ensures that every release is properly versioned and documented.
+
+## Support
+
+If you find this project helpful, consider buying me a coffee to support ongoing development and maintenance.
+
+<a href="https://www.buymeacoffee.com/nazruden" target="_blank">
+  <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=nazruden&button_colour=FFDD00&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=ffffff" alt="Buy Me A Coffee" width="217" height="60">
+</a>
 
 ## License
 
