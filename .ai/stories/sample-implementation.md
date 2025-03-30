@@ -111,7 +111,8 @@ def encode_image_to_base64(image_data: bytes) -> str:
 @mcp.tool()
 async def image_analysis(
     image: types.BinaryData,
-    prompt: Optional[str] = None,
+    query: Optional[str] = None,
+    system_prompt: str = "You are an expert vision analyzer with exceptional attention to detail. Your purpose is to provide accurate, comprehensive descriptions of images that help AI agents understand visual content they cannot directly perceive. Focus on describing all relevant elements in the image - objects, people, text, colors, spatial relationships, actions, and context. Be precise but concise, organizing information from most to least important. Avoid making assumptions beyond what's visible and clearly indicate any uncertainty. When text appears in images, transcribe it verbatim within quotes. Respond only with factual descriptions without subjective judgments or creative embellishments. Your descriptions should enable an agent to make informed decisions based solely on your analysis.",
     messages: Optional[List[Dict]] = None,
     model: Optional[VisionModel] = None,
     max_tokens: int = 4000,
@@ -128,7 +129,8 @@ async def image_analysis(
 
     Args:
         image: The image to analyze (binary data)
-        prompt: A simple text prompt for the analysis (ignored if messages is provided)
+        query: A simple text prompt for the analysis (ignored if messages is provided)
+        system_prompt: Instructions for the model defining its role and behavior
         messages: Optional custom messages array for the OpenRouter chat completions API
         model: The vision model to use (defaults to the value set by OPENROUTER_DEFAULT_MODEL)
         max_tokens: Maximum number of tokens in the response (100-4000)
@@ -141,7 +143,7 @@ async def image_analysis(
 
     Examples:
         Basic usage with just a prompt:
-            image_analysis(image=my_image, prompt="Describe this image in detail")
+            image_analysis(image=my_image, query="Describe this image in detail")
 
         Advanced usage with custom messages:
             image_analysis(
@@ -188,12 +190,16 @@ async def image_analysis(
     # Prepare messages for the OpenRouter request
     if messages is None:
         # Create default messages from prompt
-        default_prompt = prompt or "Analyze this image in detail"
+        default_query = query or "Analyze this image in detail"
         messages = [
+            {
+                "role": "system",
+                "content": system_prompt
+            },
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": default_prompt},
+                    {"type": "text", "text": default_query},
                     {
                         "type": "image_url",
                         "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
@@ -335,7 +341,7 @@ async def main():
                 "image_analysis",
                 {
                     "image": {"data": image_data},
-                    "prompt": "What objects can you see in this image?"
+                    "query": "What objects can you see in this image?"
                 }
             )
 

@@ -91,7 +91,8 @@ MCP OpenVision provides the following core tool:
     - Base64-encoded image data
     - Image URL (http/https)
     - Local file path
-  - `prompt`: Analysis instruction
+  - `query`: User instruction for the image analysis task
+  - `system_prompt`: Instructions that define the model's role and behavior (optional)
   - `model`: Vision model to use
   - `temperature`: Controls randomness (0.0-1.0)
   - `max_tokens`: Maximum response length
@@ -102,19 +103,26 @@ MCP OpenVision provides the following core tool:
 # Analyze an image from a URL
 result = await image_analysis(
     image="https://example.com/image.jpg",
-    prompt="Describe this image in detail"
+    query="Describe this image in detail"
 )
 
 # Analyze an image from a local file
 result = await image_analysis(
     image="path/to/local/image.jpg",
-    prompt="What objects are in this image?"
+    query="What objects are in this image?"
 )
 
 # Analyze with a base64-encoded image
 result = await image_analysis(
     image="SGVsbG8gV29ybGQ=...",  # base64 data
-    prompt="Analyze this image"
+    query="Analyze this image"
+)
+
+# Customize the system prompt
+result = await image_analysis(
+    image="path/to/local/image.jpg",
+    query="What's in this image?",
+    system_prompt="You are an expert at identifying rare objects. Focus on unusual items and explain their significance."
 )
 ```
 
@@ -141,7 +149,7 @@ When using relative file paths (like "examples/image.jpg"), you have two options
 result = await image_analysis(
     image="examples/image.jpg",
     project_root="/path/to/your/project",
-    prompt="What is in this image?"
+    query="What is in this image?"
 )
 ```
 

@@ -58,7 +58,7 @@ async def main():
             # Call the image_analysis tool with a simple prompt
             result = await session.call_tool(
                 "image_analysis",
-                {"image": {"data": image_data}, "prompt": "What's in this image?"},
+                {"image": {"data": image_data}, "query": "What's in this image?"},
             )
 
             print(f"\nResult:\n{result.content}")
@@ -107,7 +107,7 @@ async def main():
                     {
                         "image": "examples/test_image.png",  # Relative path from project root
                         "project_root": project_root,  # Set the project root directory
-                        "prompt": "What can you see in this image?",
+                        "query": "What can you see in this image?",
                     },
                 )
                 print(

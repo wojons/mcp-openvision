@@ -4,7 +4,7 @@ Configuration management for the OpenVision MCP server.
 
 import os
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
 
 from .exceptions import ConfigurationError
 
@@ -39,12 +39,14 @@ def get_api_key() -> str:
     return api_key
 
 
-def get_default_model() -> VisionModel:
+def get_default_model() -> Union[VisionModel, str]:
     """
     Get the default vision model from environment variables or use Qwen 2.5 VL as fallback.
+    
+    This function allows using any OpenRouter model, even if not in the VisionModel enum.
 
     Returns:
-        The default VisionModel to use
+        The default model to use (either a VisionModel enum or a custom string)
     """
     default_model = os.environ.get("OPENROUTER_DEFAULT_MODEL")
     if default_model:
@@ -52,12 +54,10 @@ def get_default_model() -> VisionModel:
         for model in VisionModel:
             if model.value == default_model:
                 return model
-
-        # If we didn't find a match, log a warning and use the fallback
-        print(
-            f"Warning: OPENROUTER_DEFAULT_MODEL '{default_model}' is not recognized. "
-            f"Using qwen/qwen2.5-vl-32b-instruct:free as default."
-        )
+        
+        # If not found in enum but a valid string, return as custom model
+        print(f"Using custom model from environment: {default_model}")
+        return default_model
 
     # Return the fallback model (QWEN_2_5_VL)
     return VisionModel.QWEN_2_5_VL

@@ -188,7 +188,7 @@ async def test_image_analysis_with_file_path(mock_post, mock_process, mock_api_k
     mock_post.return_value = mock_response
 
     # Call the function with a file path
-    result = await image_analysis(image="/path/to/image.jpg", prompt="Test prompt")
+    result = await image_analysis(image="/path/to/image.jpg", query="Test prompt")
 
     # Verify the result
     assert result == "This is a test image analysis result."
@@ -219,7 +219,7 @@ async def test_image_analysis_with_project_root(mock_post, mock_process, mock_ap
     result = await image_analysis(
         image="examples/test_image.png",
         project_root="/path/to/project",
-        prompt="Test prompt",
+        query="Test prompt",
     )
 
     # Verify the result
@@ -249,7 +249,7 @@ async def test_image_analysis_with_url(mock_post, mock_process, mock_api_key):
 
     # Call the function with a URL
     result = await image_analysis(
-        image="http://example.com/image.jpg", prompt="Test prompt"
+        image="http://example.com/image.jpg", query="Test prompt"
     )
 
     # Verify the result
@@ -279,7 +279,7 @@ async def test_image_analysis_with_base64(mock_post, mock_process, mock_api_key)
     mock_post.return_value = mock_response
 
     # Call the function with base64 data
-    result = await image_analysis(image=base64_image, prompt="Test prompt")
+    result = await image_analysis(image=base64_image, query="Test prompt")
 
     # Verify the result
     assert result == "This is a test image analysis result."
@@ -301,7 +301,7 @@ async def test_image_analysis_processing_error(mock_post, mock_process, mock_api
 
     # Call the function and verify it raises a ValueError
     with pytest.raises(ValueError) as excinfo:
-        await image_analysis(image="invalid_input", prompt="Test prompt")
+        await image_analysis(image="invalid_input", query="Test prompt")
 
     # Verify error details
     assert "Failed to process image" in str(excinfo.value)
@@ -323,7 +323,7 @@ async def test_image_analysis_api_error(mock_post, mock_api_key):
     # Call the function and verify it raises an OpenRouterError
     with pytest.raises(OpenRouterError) as excinfo:
         await image_analysis(
-            image="SGVsbG8gV29ybGQ=", prompt="Test prompt"  # Valid base64
+            image="SGVsbG8gV29ybGQ=", query="Test prompt"  # Valid base64
         )
 
     # Verify error details
@@ -341,7 +341,7 @@ async def test_image_analysis_network_error(mock_post, mock_api_key):
     # Call the function and verify it raises an OpenRouterError
     with pytest.raises(OpenRouterError) as excinfo:
         await image_analysis(
-            image="SGVsbG8gV29ybGQ=", prompt="Test prompt"  # Valid base64
+            image="SGVsbG8gV29ybGQ=", query="Test prompt"  # Valid base64
         )
 
     # Verify error details

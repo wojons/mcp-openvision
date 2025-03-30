@@ -199,7 +199,8 @@ def process_image_input(image: str, project_root: Optional[str] = None) -> str:
 @mcp.tool()
 async def image_analysis(
     image: str,
-    prompt: str = "Describe this image in detail including all visible elements, text, and context",
+    query: str = "Describe this image in detail",
+    system_prompt: str = "You are an expert vision analyzer with exceptional attention to detail. Your purpose is to provide accurate, comprehensive descriptions of images that help AI agents understand visual content they cannot directly perceive. Focus on describing all relevant elements in the image - objects, people, text, colors, spatial relationships, actions, and context. Be precise but concise, organizing information from most to least important. Avoid making assumptions beyond what's visible and clearly indicate any uncertainty. When text appears in images, transcribe it verbatim within quotes. Respond only with factual descriptions without subjective judgments or creative embellishments. Your descriptions should enable an agent to make informed decisions based solely on your analysis.",
     messages: Optional[List[Dict[str, Any]]] = None,
     model: Optional[str] = None,
     max_tokens: int = 4000,
@@ -217,10 +218,11 @@ async def image_analysis(
     more control over the interaction.
 
     Args:
-        image: The image as a base64-encoded string, URL, or local file path (required)
-        prompt: Text prompt to guide the image analysis (defaults to general description)
+        image: The image as a base64-encoded string, URL, or local file path
+        query: Text prompt to guide the image analysis (as user message)
+        system_prompt: Instructions for the model defining its role and behavior
         messages: Optional custom messages array for the OpenRouter chat completions API
-        model: The vision model to use (defaults to qwen/qwen2.5-vl-32b-instruct:free)
+        model: The vision model to use (defaults to the value set by OPENROUTER_DEFAULT_MODEL)
         max_tokens: Maximum number of tokens in the response (100-4000)
         temperature: Temperature parameter for generation (0.0-1.0)
         top_p: Optional nucleus sampling parameter (0.0-1.0)
@@ -232,17 +234,14 @@ async def image_analysis(
         The analysis result as text
 
     Examples:
-        Basic usage with a file path:
-            image_analysis(image="path/to/image.jpg")
-
-        Basic usage with a custom prompt:
-            image_analysis(image="path/to/image.jpg", prompt="What objects can you see in this image?")
+        Basic usage with just a prompt and file path:
+            image_analysis(image="path/to/image.jpg", query="Describe this image in detail")
 
         Basic usage with an image URL:
-            image_analysis(image="https://example.com/image.jpg", prompt="Describe this image in detail")
+            image_analysis(image="https://example.com/image.jpg", query="Describe this image in detail")
 
         Basic usage with a relative path and project root:
-            image_analysis(image="examples/image.jpg", project_root="/path/to/project")
+            image_analysis(image="examples/image.jpg", project_root="/path/to/project", query="Describe this image in detail")
 
         Advanced usage with custom messages:
             image_analysis(
@@ -290,16 +289,21 @@ async def image_analysis(
         error_msg += "- For URLs, ensure they are publicly accessible\n"
         error_msg += "- For base64, ensure the encoding is correct\n\n"
         error_msg += "Examples:\n"
-        error_msg += "image_analysis(image=\"/full/path/to/image.jpg\")\n"
-        error_msg += "image_analysis(image=\"relative/path/image.jpg\", project_root=\"/root/dir\")\n"
-        error_msg += "image_analysis(image=\"https://example.com/image.jpg\")"
+        error_msg += 'image_analysis(image="/full/path/to/image.jpg", query="Describe this image")\n'
+        error_msg += 'image_analysis(image="relative/path/image.jpg", project_root="/root/dir", query="What\'s in this image?")\n'
+        error_msg += 'image_analysis(image="https://example.com/image.jpg", query="Analyze this image")'
         raise ValueError(error_msg)
 
     # If no model specified, use the default model from environment or fallback
     if model is None:
         selected_model = get_default_model()
-        model_value = selected_model.value
+        if isinstance(selected_model, VisionModel):
+            model_value = selected_model.value
+        else:
+            # Handle custom model string
+            model_value = selected_model
     else:
+        # Allow any custom model string directly from the parameter
         model_value = model
 
     # Get API key
@@ -312,22 +316,30 @@ async def image_analysis(
 
     # Prepare messages for the OpenRouter request
     if messages is None:
-        # Create default messages from prompt
+        # Create default messages with system and user role
         messages = [
+            {"role": "system", "content": system_prompt},
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": prompt},
+                    {"type": "text", "text": query},
                     {
                         "type": "image_url",
                         "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
                     },
                 ],
-            }
+            },
         ]
     else:
         # Messages were provided - ensure the image is included
         image_added = False
+
+        # Check if system message exists, add if not
+        has_system_message = any(
+            message.get("role") == "system" for message in messages
+        )
+        if not has_system_message:
+            messages.insert(0, {"role": "system", "content": system_prompt})
 
         # Process each message
         for message in messages:
@@ -371,7 +383,7 @@ async def image_analysis(
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": prompt},
+                        {"type": "text", "text": query},
                         {
                             "type": "image_url",
                             "image_url": {
