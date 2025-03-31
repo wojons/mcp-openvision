@@ -3,13 +3,21 @@ name: Publish to PyPI
 on:
   release:
     types: [created]
+  repository_dispatch:
+    types: [release-created]
   workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.release.tag_name || 'main' }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -32,7 +40,7 @@ jobs:
           skip-existing: true
 
       - name: Publish to PyPI
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || github.event_name == 'repository_dispatch'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
