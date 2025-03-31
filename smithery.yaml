@@ -1,0 +1,31 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - openrouterApiKey
+    properties:
+      openrouterApiKey:
+        type: string
+        description: Your OpenRouter API key required for image analysis.
+      openrouterDefaultModel:
+        type: string
+        default: qwen/qwen2.5-vl-32b-instruct:free
+        description: Optional vision model identifier.
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({
+      command: 'mcp-openvision',
+      args: [],
+      env: {
+        OPENROUTER_API_KEY: config.openrouterApiKey,
+        OPENROUTER_DEFAULT_MODEL: config.openrouterDefaultModel
+      }
+    })
+  exampleConfig:
+    openrouterApiKey: your_api_key_here
+    openrouterDefaultModel: anthropic/claude-3-sonnet

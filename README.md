@@ -5,12 +5,21 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/mcp-openvision.svg)](https://pypi.org/project/mcp-openvision/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow.svg)](https://buymeacoffee.com/nazruden)
+[![smithery badge](https://smithery.ai/badge/@Nazruden/mcp-openvision)](https://smithery.ai/server/@Nazruden/mcp-openvision)
 
 ## Overview
 
 MCP OpenVision is a Model Context Protocol (MCP) server that provides image analysis capabilities powered by OpenRouter vision models. It enables AI assistants to analyze images via a simple interface within the MCP ecosystem.
 
 ## Installation
+
+### Installing via Smithery
+
+To install mcp-openvision for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@Nazruden/mcp-openvision):
+
+```bash
+npx -y @smithery/cli install @Nazruden/mcp-openvision --client claude
+```
 
 ### Using pip
 
