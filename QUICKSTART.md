@@ -40,7 +40,7 @@ The primary way to configure MCP servers is through the mcp.json file, which is 
       "args": ["mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
-        "OPENROUTER_DEFAULT_MODEL": "qwen/qwq-32b:free"
+        "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"
       }
     }
   }
@@ -60,7 +60,7 @@ MCP OpenVision can be configured using these environment variables in your mcp.j
 
 Available models include:
 
-- "qwen/qwq-32b:free" (default)
+- "qwen/qwen2.5-vl-32b-instruct:free" (default)
 - "anthropic/claude-3-5-sonnet"
 - "anthropic/claude-3-opus"
 - "anthropic/claude-3-sonnet"

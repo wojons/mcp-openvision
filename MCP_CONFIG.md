@@ -31,7 +31,7 @@ Here's the basic format for adding MCP OpenVision to your `mcp.json` file:
       "args": ["mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
-        "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-sonnet"
+        "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"
       }
     }
   }
@@ -54,7 +54,7 @@ MCP OpenVision supports these environment variables:
 
 Valid model options include:
 
-- "qwen/qwq-32b:free" (default)
+- "qwen/qwen2.5-vl-32b-instruct:free" (default)
 - "anthropic/claude-3-5-sonnet"
 - "anthropic/claude-3-opus"
 - "anthropic/claude-3-sonnet"
@@ -73,7 +73,7 @@ For advanced users or development, you can configure the server to run from a lo
       "args": ["-m", "mcp_openvision.server"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
-        "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-sonnet"
+        "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"
       }
     }
   }
@@ -93,7 +93,7 @@ Recent versions of Cursor and Claude Desktop support enabling and disabling MCP 
       "args": ["mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
-        "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-sonnet"
+        "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"
       }
     }
   }
