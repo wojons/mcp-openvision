@@ -31,41 +31,44 @@ mcp = FastMCP(
 # Ensure mimetypes are initialized
 mimetypes.init()
 
+
 def encode_image_to_base64(image_data: bytes) -> str:
     """Encode image data to base64."""
     return base64.b64encode(image_data).decode("utf-8")
 
+
 def get_mime_type(file_path: str, image_data: Optional[bytes] = None) -> str:
     """
     Determine MIME type from file extension or image data.
-    
+
     Args:
         file_path: Path or URL to the image
         image_data: Optional raw image data to check if path doesn't provide mime type
-        
+
     Returns:
         MIME type as a string (defaults to image/jpeg if cannot be determined)
     """
     # First try to get mime type from file extension
     mime_type, _ = mimetypes.guess_type(file_path)
-    
-    if mime_type and mime_type.startswith('image/'):
+
+    if mime_type and mime_type.startswith("image/"):
         return mime_type
-    
+
     # Fallback to examining file headers if we have image data
     if image_data:
         # Check for PNG signature
-        if image_data.startswith(b'\x89PNG\r\n\x1a\n'):
-            return 'image/png'
+        if image_data.startswith(b"\x89PNG\r\n\x1a\n"):
+            return "image/png"
         # Check for JPEG signature
-        elif image_data.startswith(b'\xff\xd8\xff'):
-            return 'image/jpeg'
+        elif image_data.startswith(b"\xff\xd8\xff"):
+            return "image/jpeg"
         # Check for WebP signature
-        elif image_data.startswith(b'RIFF') and b'WEBP' in image_data[0:12]:
-            return 'image/webp'
-    
+        elif image_data.startswith(b"RIFF") and b"WEBP" in image_data[0:12]:
+            return "image/webp"
+
     # Default to JPEG if we couldn't determine the type
-    return 'image/jpeg'
+    return "image/jpeg"
+
 
 def is_url(string: str) -> bool:
     """
@@ -129,10 +132,10 @@ def is_base64(string: str) -> bool:
 def extract_mime_type_from_data_url(data_url: str) -> str:
     """
     Extract MIME type from a data URL.
-    
+
     Args:
         data_url: The data URL string
-        
+
     Returns:
         The MIME type or 'image/jpeg' if not found
     """
@@ -140,7 +143,7 @@ def extract_mime_type_from_data_url(data_url: str) -> str:
     match = re.search(pattern, data_url)
     if match:
         return match.group(1)
-    return 'image/jpeg'
+    return "image/jpeg"
 
 
 def load_image_from_url(url: str) -> Tuple[str, str]:
@@ -159,18 +162,20 @@ def load_image_from_url(url: str) -> Tuple[str, str]:
     try:
         response = requests.get(url, stream=True, timeout=10)
         response.raise_for_status()  # Raise exception for 4XX/5XX responses
-        
+
         # Get content type from headers or guess from URL
-        content_type = response.headers.get('Content-Type')
-        if not content_type or not content_type.startswith('image/'):
+        content_type = response.headers.get("Content-Type")
+        if not content_type or not content_type.startswith("image/"):
             content_type = get_mime_type(url, response.content)
-            
+
         return encode_image_to_base64(response.content), content_type
     except requests.RequestException as e:
         raise Exception(f"Failed to download image from URL: {url}, error: {str(e)}")
 
 
-def load_image_from_path(path: str, project_root: Optional[str] = None) -> Tuple[str, str]:
+def load_image_from_path(
+    path: str, project_root: Optional[str] = None
+) -> Tuple[str, str]:
     """
     Load an image from a local file path and convert it to base64.
 
@@ -198,7 +203,9 @@ def load_image_from_path(path: str, project_root: Optional[str] = None) -> Tuple
                 mime_type = get_mime_type(str(file_path), image_data)
                 return encode_image_to_base64(image_data), mime_type
         except PermissionError:
-            raise PermissionError(f"Permission denied when trying to read image file at: {path}")
+            raise PermissionError(
+                f"Permission denied when trying to read image file at: {path}"
+            )
         except Exception as e:
             raise Exception(f"Error reading image file at: {path}, error: {str(e)}")
 
@@ -237,7 +244,9 @@ def load_image_from_path(path: str, project_root: Optional[str] = None) -> Tuple
         )
 
 
-def process_image_input(image: str, project_root: Optional[str] = None) -> Tuple[str, str]:
+def process_image_input(
+    image: str, project_root: Optional[str] = None
+) -> Tuple[str, str]:
     """
     Process the image input, which can be a URL, file path, or base64-encoded data.
 
@@ -258,7 +267,7 @@ def process_image_input(image: str, project_root: Optional[str] = None) -> Tuple
         match = re.search(pattern, image)
         if match:
             return match.group(1), mime_type
-    
+
     # Check if the image is just base64-encoded (without data URL prefix)
     if is_base64(image):
         # For plain base64, we'll need to guess the mime type
