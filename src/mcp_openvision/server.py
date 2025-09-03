@@ -25,7 +25,7 @@ from .exceptions import OpenRouterError, ConfigurationError
 # Initialize FastMCP with dependencies
 mcp = FastMCP(
     "OpenVision",
-    description="Vision analysis tool for images using OpenRouter",
+    instructions="Vision analysis tool for images using OpenRouter",
 )
 
 # Ensure mimetypes are initialized
@@ -146,7 +146,7 @@ def extract_mime_type_from_data_url(data_url: str) -> str:
     return "image/jpeg"
 
 
-def load_image_from_url(url: str) -> Tuple[str, str]:
+def load_image_from_url(url: str) -> str:
     """
     Download an image from a URL and convert it to base64.
 
@@ -163,19 +163,23 @@ def load_image_from_url(url: str) -> Tuple[str, str]:
         response = requests.get(url, stream=True, timeout=10)
         response.raise_for_status()  # Raise exception for 4XX/5XX responses
 
+        # Explicitly handle non-200 responses (helps when raise_for_status is mocked)
+        if response.status_code != 200:
+            raise Exception(f"Failed to download image from URL: {url}, error: HTTP {response.status_code}")
+
         # Get content type from headers or guess from URL
         content_type = response.headers.get("Content-Type")
         if not content_type or not content_type.startswith("image/"):
             content_type = get_mime_type(url, response.content)
 
-        return encode_image_to_base64(response.content), content_type
+        return encode_image_to_base64(response.content)
     except requests.RequestException as e:
         raise Exception(f"Failed to download image from URL: {url}, error: {str(e)}")
 
 
 def load_image_from_path(
     path: str, project_root: Optional[str] = None
-) -> Tuple[str, str]:
+) -> str:
     """
     Load an image from a local file path and convert it to base64.
 
@@ -201,7 +205,7 @@ def load_image_from_path(
             with open(file_path, "rb") as f:
                 image_data = f.read()
                 mime_type = get_mime_type(str(file_path), image_data)
-                return encode_image_to_base64(image_data), mime_type
+                return encode_image_to_base64(image_data)
         except PermissionError:
             raise PermissionError(
                 f"Permission denied when trying to read image file at: {path}"
@@ -226,7 +230,7 @@ def load_image_from_path(
                 with open(p, "rb") as f:
                     image_data = f.read()
                     mime_type = get_mime_type(str(p), image_data)
-                    return encode_image_to_base64(image_data), mime_type
+                    return encode_image_to_base64(image_data)
             except PermissionError:
                 # Continue to try other paths if permission error
                 continue
@@ -246,7 +250,7 @@ def load_image_from_path(
 
 def process_image_input(
     image: str, project_root: Optional[str] = None
-) -> Tuple[str, str]:
+) -> str:
     """
     Process the image input, which can be a URL, file path, or base64-encoded data.
 
@@ -266,12 +270,12 @@ def process_image_input(
         pattern = r"base64,(.*)"
         match = re.search(pattern, image)
         if match:
-            return match.group(1), mime_type
+            return match.group(1)
 
     # Check if the image is just base64-encoded (without data URL prefix)
     if is_base64(image):
         # For plain base64, we'll need to guess the mime type
-        return image, "image/jpeg"  # Default to jpeg for plain base64
+        return image  # Default to jpeg for plain base64 when determining mime later
 
     # Check if the image is a URL
     if is_url(image):
@@ -374,7 +378,26 @@ async def image_analysis(
 
     # Process the image input (URL, file path, or base64)
     try:
-        base64_image, mime_type = process_image_input(image, project_root)
+        base64_image = process_image_input(image, project_root)
+        # Derive MIME type based on input
+        if image.startswith("data:image"):
+            mime_type = extract_mime_type_from_data_url(image)
+        elif is_url(image):
+            mime_type = get_mime_type(image)
+        elif is_base64(image):
+            mime_type = "image/jpeg"
+        else:
+            # Local path: sniff actual bytes to avoid mismatches between extension and content
+            try:
+                candidate_path = Path(image)
+                if not candidate_path.is_absolute() and project_root:
+                    candidate_path = Path(project_root) / image
+                with open(candidate_path, "rb") as f:
+                    header = f.read(16)
+                mime_type = get_mime_type(str(candidate_path), header)
+            except Exception:
+                # Fallback to extension-based guess
+                mime_type = get_mime_type(image)
         print(f"Image processed successfully. Detected MIME type: {mime_type}")
     except Exception as e:
         # Provide more helpful error message with examples
