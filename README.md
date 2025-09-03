@@ -3,6 +3,8 @@
 [![CI](https://github.com/Nazruden/mcp-openvision/actions/workflows/ci.yml/badge.svg)](https://github.com/Nazruden/mcp-openvision/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/mcp-openvision.svg)](https://pypi.org/project/mcp-openvision/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/mcp-openvision.svg)](https://pypi.org/project/mcp-openvision/)
+[![PyPI (fork)](https://img.shields.io/pypi/v/wojons-mcp-openvision.svg)](https://pypi.org/project/wojons-mcp-openvision/)
+[![Python Versions (fork)](https://img.shields.io/pypi/pyversions/wojons-mcp-openvision.svg)](https://pypi.org/project/wojons-mcp-openvision/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow.svg)](https://buymeacoffee.com/nazruden)
 [![smithery badge](https://smithery.ai/badge/@Nazruden/mcp-openvision)](https://smithery.ai/server/@Nazruden/mcp-openvision)
@@ -33,6 +35,16 @@ pip install mcp-openvision
 uv pip install mcp-openvision
 ```
 
+### Installing this fork (PyPI)
+
+This repository is a maintained fork published under the distribution name "wojons-mcp-openvision".
+
+```bash
+pip install wojons-mcp-openvision
+# or
+uv pip install wojons-mcp-openvision
+```
+
 ## Configuration
 
 MCP OpenVision requires an OpenRouter API key and can be configured through environment variables:
@@ -61,7 +73,7 @@ You can specify custom models by setting the `OPENROUTER_DEFAULT_MODEL` environm
 The easiest way to test MCP OpenVision is with the MCP Inspector tool:
 
 ```bash
-npx @modelcontextprotocol/inspector uvx mcp-openvision
+npx @modelcontextprotocol/inspector uvx --from wojons-mcp-openvision mcp-openvision
 ```
 
 ### Integration with Claude Desktop or Cursor
@@ -78,7 +90,7 @@ npx @modelcontextprotocol/inspector uvx mcp-openvision
   "mcpServers": {
     "openvision": {
       "command": "uvx",
-      "args": ["mcp-openvision"],
+      "args": ["--from", "wojons-mcp-openvision", "mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
         "OPENROUTER_DEFAULT_MODEL": "anthropic/claude-3-sonnet"
@@ -197,7 +209,7 @@ This is particularly useful in applications where the current working directory 
 
 ```bash
 # Clone the repository
-git clone https://github.com/modelcontextprotocol/mcp-openvision.git
+git clone https://github.com/wojons/mcp-openvision.git
 cd mcp-openvision
 
 # Install development dependencies

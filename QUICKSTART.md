@@ -19,6 +19,29 @@ pip install mcp-openvision
 
 This is the simplest method as it allows you to use the `uvx` command in your mcp.json configuration.
 
+Alternatively, install the maintained fork published under "wojons-mcp-openvision":
+
+```bash
+pip install wojons-mcp-openvision
+```
+
+If you are configuring via `uvx` and want to run the fork without a global install, use `--from` to select the distribution:
+
+```json
+{
+  "mcpServers": {
+    "openvision": {
+      "command": "uvx",
+      "args": ["--from", "wojons-mcp-openvision", "mcp-openvision"],
+      "env": {
+        "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
+        "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"
+      }
+    }
+  }
+}
+```
+
 ## Configuration
 
 ### Configuring in mcp.json
@@ -37,7 +60,7 @@ The primary way to configure MCP servers is through the mcp.json file, which is 
   "mcpServers": {
     "openvision": {
       "command": "uvx",
-      "args": ["mcp-openvision"],
+      "args": ["--from", "wojons-mcp-openvision", "mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
         "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"

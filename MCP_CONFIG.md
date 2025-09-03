@@ -28,7 +28,26 @@ Here's the basic format for adding MCP OpenVision to your `mcp.json` file:
   "mcpServers": {
     "openvision": {
       "command": "uvx",
-      "args": ["mcp-openvision"],
+      "args": ["--from", "wojons-mcp-openvision", "mcp-openvision"],
+      "env": {
+        "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
+        "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"
+      }
+    }
+  }
+}
+```
+
+### Using the maintained fork via uvx
+
+If you prefer to run the maintained fork from PyPI without a global install, you can use `uvx --from` to select the distribution:
+
+```json
+{
+  "mcpServers": {
+    "openvision": {
+      "command": "uvx",
+      "args": ["--from", "wojons-mcp-openvision", "mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
         "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"
@@ -90,7 +109,7 @@ Recent versions of Cursor and Claude Desktop support enabling and disabling MCP 
     "openvision": {
       "enabled": true,
       "command": "uvx",
-      "args": ["mcp-openvision"],
+      "args": ["--from", "wojons-mcp-openvision", "mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here",
         "OPENROUTER_DEFAULT_MODEL": "qwen/qwen2.5-vl-32b-instruct:free"
@@ -111,7 +130,7 @@ You can add multiple MCP servers to your configuration:
   "mcpServers": {
     "openvision": {
       "command": "uvx",
-      "args": ["mcp-openvision"],
+      "args": ["--from", "wojons-mcp-openvision", "mcp-openvision"],
       "env": {
         "OPENROUTER_API_KEY": "your_openrouter_api_key_here"
       }
